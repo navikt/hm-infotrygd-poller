@@ -74,6 +74,7 @@ internal object Configuration {
     val oracleDatabaseConfig: Map<String, String> = mapOf(
         "HM_INFOTRYGDKLISTENER_SRVUSER" to config()[Key("HM_INFOTRYGDKLISTENER_SRVUSER", stringType)],
         "HM_INFOTRYGDLISTENER_SRVPWD" to config()[Key("HM_INFOTRYGDLISTENER_SRVPWD", stringType)],
+        "DATABASE_URL" to "jdbc:oracle:thin:@a01dbfl033.adeo.no:1521/infotrygd_hjq",
     )
 
     val application: Map<String, String> = mapOf(
