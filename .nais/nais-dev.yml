@@ -28,6 +28,3 @@ spec:
     outbound:
       external:
         - host: a01dbfl033.adeo.no
-          ports:
-            - port: 1521
-              protocol: TCP
