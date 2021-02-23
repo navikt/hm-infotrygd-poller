@@ -1,0 +1,33 @@
+apiVersion: "nais.io/v1alpha1"
+kind: "Application"
+metadata:
+  name: hm-infotrygd-listener
+  namespace: teamdigihot
+  labels:
+    team: teamdigihot
+spec:
+  image: {{image}}
+  kafka:
+    pool: nav-dev
+  envFrom:
+    - secret: srvhm-infotryglistener-secret
+  resources:
+    limits:
+      cpu: 2000m
+      memory: 3000Mi
+    requests:
+      cpu: 500m
+      memory: 600Mi
+  liveness:
+    path: /isalive
+  readiness:
+    path: /isready
+  secureLogs:
+    enabled: true
+  accessPolicy:
+    outbound:
+      external:
+        - host: a01dbfl033.adeo.no
+          ports:
+            - port: 1521
+              protocol: TCP
