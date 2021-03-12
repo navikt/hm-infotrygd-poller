@@ -48,7 +48,7 @@ fun main() {
 
     // Set up database connection
     val info = Properties()
-    info[OracleConnection.CONNECTION_PROPERTY_USER_NAME] = Configuration.oracleDatabaseConfig["HM_INFOTRYGDKPOLLER_SRVUSER"]!!
+    info[OracleConnection.CONNECTION_PROPERTY_USER_NAME] = Configuration.oracleDatabaseConfig["HM_INFOTRYGDPOLLER_SRVUSER"]!!
     info[OracleConnection.CONNECTION_PROPERTY_PASSWORD] = Configuration.oracleDatabaseConfig["HM_INFOTRYGDPOLLER_SRVPWD"]!!
     info[OracleConnection.CONNECTION_PROPERTY_DEFAULT_ROW_PREFETCH] = "20"
 

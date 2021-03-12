@@ -10,7 +10,7 @@ spec:
   kafka:
     pool: nav-dev
   envFrom:
-    - secret: srvhm-infotryglistener-secret
+    - secret: srvhm-infotrygdpoller-secret
   resources:
     limits:
       cpu: 2000m

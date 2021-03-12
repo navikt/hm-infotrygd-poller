@@ -51,7 +51,7 @@ internal object Configuration {
             "application.profile" to "local",
             "SENSU_URL" to "https://test",
 
-            "HM_INFOTRYGDKPOLLER_SRVUSER" to "abc",
+            "HM_INFOTRYGDPOLLER_SRVUSER" to "abc",
             "HM_INFOTRYGDPOLLER_SRVPWD" to "abc",
         )
     )
@@ -72,7 +72,7 @@ internal object Configuration {
     ) + System.getenv().filter { it.key.startsWith("NAIS_") }
 
     val oracleDatabaseConfig: Map<String, String> = mapOf(
-        "HM_INFOTRYGDKPOLLER_SRVUSER" to config()[Key("HM_INFOTRYGDKPOLLER_SRVUSER", stringType)],
+        "HM_INFOTRYGDPOLLER_SRVUSER" to config()[Key("HM_INFOTRYGDPOLLER_SRVUSER", stringType)],
         "HM_INFOTRYGDPOLLER_SRVPWD" to config()[Key("HM_INFOTRYGDPOLLER_SRVPWD", stringType)],
         "DATABASE_URL" to "jdbc:oracle:thin:@a01dbfl033.adeo.no:1521/infotrygd_hjq",
     )
