@@ -1,4 +1,4 @@
-# hm-infotrygd-listener
+# hm-infotrygd-poller
 Applikasjon som snakker med replikasjonsdatabasen til infotrygd og publiserer relevante endringer til hm rapid.
 
 ## Teknologiar

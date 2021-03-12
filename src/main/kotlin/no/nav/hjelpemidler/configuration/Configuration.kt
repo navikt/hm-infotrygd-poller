@@ -16,7 +16,7 @@ internal object Configuration {
         mapOf(
             "kafka.aiven.topic" to "teamdigihot.hm-soknadsbehandling-v1",
             "kafka.reset.policy" to "latest",
-            "kafka.client.id" to "hm-infotrygd-listener-prod",
+            "kafka.client.id" to "hm-infotrygd-poller-prod",
 
             "application.profile" to "prod",
             "SENSU_URL" to "https://digihot-proxy.prod-fss-pub.nais.io/sensu",
@@ -27,7 +27,7 @@ internal object Configuration {
         mapOf(
             "kafka.aiven.topic" to "teamdigihot.hm-soknadsbehandling-v1",
             "kafka.reset.policy" to "latest",
-            "kafka.client.id" to "hm-infotrygd-listener-dev",
+            "kafka.client.id" to "hm-infotrygd-poller-dev",
 
             "application.profile" to "dev",
             "SENSU_URL" to "https://digihot-proxy.dev-fss-pub.nais.io/sensu",
@@ -45,22 +45,22 @@ internal object Configuration {
             "KAFKA_CREDSTORE_PASSWORD" to "",
             "KAFKA_KEYSTORE_PATH" to "",
             "kafka.brokers" to "host.docker.internal:9092",
-            "kafka.client.id" to "hm-infotrygd-listener-local",
+            "kafka.client.id" to "hm-infotrygd-poller-local",
             "kafka.aiven.topic" to "teamdigihot.hm-soknadsbehandling-v1",
 
             "application.profile" to "local",
             "SENSU_URL" to "https://test",
 
-            "HM_INFOTRYGDKLISTENER_SRVUSER" to "abc",
-            "HM_INFOTRYGDLISTENER_SRVPWD" to "abc",
+            "HM_INFOTRYGDKPOLLER_SRVUSER" to "abc",
+            "HM_INFOTRYGDPOLLER_SRVPWD" to "abc",
         )
     )
 
     val rapidConfig: Map<String, String> = mapOf(
         "RAPID_KAFKA_CLUSTER" to "gcp",
-        "RAPID_APP_NAME" to "hm-infotrygd-listener",
+        "RAPID_APP_NAME" to "hm-infotrygd-poller",
         "KAFKA_BOOTSTRAP_SERVERS" to config()[Key("kafka.brokers", stringType)],
-        "KAFKA_CONSUMER_GROUP_ID" to "hm-infotrygd-listener-v1",
+        "KAFKA_CONSUMER_GROUP_ID" to "hm-infotrygd-poller-v1",
         "KAFKA_RAPID_TOPIC" to config()[Key("kafka.aiven.topic", stringType)],
         "KAFKA_RESET_POLICY" to config()[Key("kafka.reset.policy", stringType)],
         "KAFKA_TRUSTSTORE_PATH" to config()[Key("KAFKA_TRUSTSTORE_PATH", stringType)],
@@ -72,8 +72,8 @@ internal object Configuration {
     ) + System.getenv().filter { it.key.startsWith("NAIS_") }
 
     val oracleDatabaseConfig: Map<String, String> = mapOf(
-        "HM_INFOTRYGDKLISTENER_SRVUSER" to config()[Key("HM_INFOTRYGDKLISTENER_SRVUSER", stringType)],
-        "HM_INFOTRYGDLISTENER_SRVPWD" to config()[Key("HM_INFOTRYGDLISTENER_SRVPWD", stringType)],
+        "HM_INFOTRYGDKPOLLER_SRVUSER" to config()[Key("HM_INFOTRYGDKPOLLER_SRVUSER", stringType)],
+        "HM_INFOTRYGDPOLLER_SRVPWD" to config()[Key("HM_INFOTRYGDPOLLER_SRVPWD", stringType)],
         "DATABASE_URL" to "jdbc:oracle:thin:@a01dbfl033.adeo.no:1521/infotrygd_hjq",
     )
 

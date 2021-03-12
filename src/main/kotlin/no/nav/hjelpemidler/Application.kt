@@ -10,23 +10,12 @@ import oracle.jdbc.OracleConnection
 import oracle.jdbc.pool.OracleDataSource
 import java.net.InetAddress
 import java.util.Properties
-import java.sql.DatabaseMetaData
-import java.sql.ResultSet
-
-
-
-
-
-
-
-
-
 
 private val logg = KotlinLogging.logger {}
 private val sikkerlogg = KotlinLogging.logger("tjenestekall")
 
 fun main() {
-    var rapidApp: RapidsConnection? = null
+    /*var rapidApp: RapidsConnection? = null
     rapidApp = RapidApplication.Builder(
         RapidApplication.RapidApplicationConfig(
             Configuration.rapidConfig["RAPID_APP_NAME"],
@@ -55,11 +44,12 @@ fun main() {
     ).build().apply {
         LoggRiver(this)
     }
+     */
 
     // Set up database connection
     val info = Properties()
-    info[OracleConnection.CONNECTION_PROPERTY_USER_NAME] = Configuration.oracleDatabaseConfig["HM_INFOTRYGDKLISTENER_SRVUSER"]!!
-    info[OracleConnection.CONNECTION_PROPERTY_PASSWORD] = Configuration.oracleDatabaseConfig["HM_INFOTRYGDLISTENER_SRVPWD"]!!
+    info[OracleConnection.CONNECTION_PROPERTY_USER_NAME] = Configuration.oracleDatabaseConfig["HM_INFOTRYGDKPOLLER_SRVUSER"]!!
+    info[OracleConnection.CONNECTION_PROPERTY_PASSWORD] = Configuration.oracleDatabaseConfig["HM_INFOTRYGDPOLLER_SRVPWD"]!!
     info[OracleConnection.CONNECTION_PROPERTY_DEFAULT_ROW_PREFETCH] = "20"
 
     val ods = OracleDataSource()
@@ -98,8 +88,12 @@ fun main() {
         e.printStackTrace()
     }
 
+    Thread.sleep(1000*60*60*24)
+
+    /*
     // Run our rapid and rivers implementation facing hm-rapid
     logg.info("Starting Rapid & Rivers app towards hm-rapid")
     rapidApp.start()
     logg.info("Application ending.")
+     */
 }

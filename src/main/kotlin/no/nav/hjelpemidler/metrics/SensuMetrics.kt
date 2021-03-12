@@ -14,7 +14,7 @@ import org.influxdb.dto.Point
 class SensuMetrics {
     private val log = LoggerFactory.getLogger(SensuMetrics::class.java)
     private val sensuURL = Configuration.application["SENSU_URL"] ?: "http://localhost/unconfigured"
-    private val sensuName = "hm-infotrygd-listener-events"
+    private val sensuName = "hm-infotrygd-poller-events"
 
     private val httpClient = HttpClient.newBuilder()
         .version(HttpClient.Version.HTTP_1_1)
@@ -76,12 +76,12 @@ class SensuMetrics {
 
     companion object {
         private val DEFAULT_TAGS: Map<String, String> = mapOf(
-            "application" to (Configuration.application["NAIS_APP_NAME"] ?: "hm-infotrygd-listener"),
+            "application" to (Configuration.application["NAIS_APP_NAME"] ?: "hm-infotrygd-poller"),
             "cluster" to (Configuration.application["NAIS_CLUSTER_NAME"] ?: "dev-fss"),
             "namespace" to (Configuration.application["NAIS_NAMESPACE"] ?: "teamdigihot")
         )
 
-        private const val SOKNADER = "hm-infotrygd-listener"
+        private const val SOKNADER = "hm-infotrygd-poller"
         const val MELDING_TIL_RAPID_SUKSESS = "$SOKNADER.soknadmottatt.rapid.suksess"
         const val MELDING_TIL_RAPID_FEILET = "$SOKNADER.soknadmottatt.rapid.feilet"
     }

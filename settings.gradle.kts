@@ -1,2 +1,2 @@
 
-rootProject.name = "hm-infotrygd-listener"
+rootProject.name = "hm-infotrygd-poller"
