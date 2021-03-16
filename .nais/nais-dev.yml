@@ -9,8 +9,6 @@ spec:
   image: {{image}}
   kafka:
     pool: nav-dev
-  envFrom:
-    - secret: srvhm-infotrygdpoller-secret
   resources:
     limits:
       cpu: 2000m
@@ -18,13 +16,8 @@ spec:
     requests:
       cpu: 500m
       memory: 600Mi
-  liveness:
-    path: /isalive
-  readiness:
-    path: /isready
   secureLogs:
     enabled: true
-  accessPolicy:
-    outbound:
-      external:
-        - host: a01dbfl033.adeo.no
+  azure:
+    application:
+      enabled: true

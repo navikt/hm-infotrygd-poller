@@ -9,8 +9,6 @@ spec:
   image: {{image}}
   kafka:
     pool: nav-prod
-  envFrom:
-    - secret: srvhm-infotrygdpoller-secret
   resources:
     limits:
       cpu: 2000m
@@ -24,7 +22,3 @@ spec:
     path: /isready
   secureLogs:
     enabled: true
-  accessPolicy:
-    outbound:
-      external:
-        - host: a01dbfl033.adeo.no

@@ -20,6 +20,11 @@ internal object Configuration {
 
             "application.profile" to "prod",
             "SENSU_URL" to "https://digihot-proxy.prod-fss-pub.nais.io/sensu",
+
+            "AZURE_TENANT_BASEURL" to "https://login.microsoftonline.com",
+            "AZURE_AD_SCOPE" to "api://prod-fss.teamdigihot.hm-infotrygd-proxy/.default",
+
+            "INFOTRYGDPROXY_URL" to "https://hm-infotrygd-proxy.adeo.no",
         )
     )
 
@@ -31,6 +36,11 @@ internal object Configuration {
 
             "application.profile" to "dev",
             "SENSU_URL" to "https://digihot-proxy.dev-fss-pub.nais.io/sensu",
+
+            "AZURE_TENANT_BASEURL" to "https://login.microsoftonline.com",
+            "AZURE_AD_SCOPE" to "api://dev-fss.teamdigihot.hm-infotrygd-proxy/.default",
+
+            "INFOTRYGDPROXY_URL" to "https://hm-infotrygd-proxy.dev.adeo.no",
         )
     )
 
@@ -51,8 +61,13 @@ internal object Configuration {
             "application.profile" to "local",
             "SENSU_URL" to "https://test",
 
-            "HM_INFOTRYGDPOLLER_SRVUSER" to "abc",
-            "HM_INFOTRYGDPOLLER_SRVPWD" to "abc",
+            "AZURE_TENANT_BASEURL" to "http://localhost:9099",
+            "AZURE_APP_TENANT_ID" to "123",
+            "AZURE_APP_CLIENT_ID" to "123",
+            "AZURE_APP_CLIENT_SECRET" to "dummy",
+            "AZURE_AD_SCOPE" to "123",
+
+            "INFOTRYGDPROXY_URL" to "http://localhost:9092",
         )
     )
 
@@ -71,10 +86,16 @@ internal object Configuration {
         "KAFKA_CLIENT_ID" to config()[Key("kafka.client.id", stringType)],
     ) + System.getenv().filter { it.key.startsWith("NAIS_") }
 
-    val oracleDatabaseConfig: Map<String, String> = mapOf(
-        "HM_INFOTRYGDPOLLER_SRVUSER" to config()[Key("HM_INFOTRYGDPOLLER_SRVUSER", stringType)],
-        "HM_INFOTRYGDPOLLER_SRVPWD" to config()[Key("HM_INFOTRYGDPOLLER_SRVPWD", stringType)],
-        "DATABASE_URL" to "jdbc:oracle:thin:@a01dbfl033.adeo.no:1521/infotrygd_hjq",
+    val azureAD: Map<String, String> = mapOf(
+        "AZURE_TENANT_BASEURL" to config()[Key("AZURE_TENANT_BASEURL", stringType)],
+        "AZURE_APP_TENANT_ID" to config()[Key("AZURE_APP_TENANT_ID", stringType)],
+        "AZURE_APP_CLIENT_ID" to config()[Key("AZURE_APP_CLIENT_ID", stringType)],
+        "AZURE_APP_CLIENT_SECRET" to config()[Key("AZURE_APP_CLIENT_SECRET", stringType)],
+        "AZURE_AD_SCOPE" to config()[Key("AZURE_AD_SCOPE", stringType)],
+    )
+
+    val infotrygdProxy: Map<String, String> = mapOf(
+        "INFOTRYGDPROXY_URL" to config()[Key("INFOTRYGDPROXY_URL", stringType)],
     )
 
     val application: Map<String, String> = mapOf(

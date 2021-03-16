@@ -1,19 +1,38 @@
 package no.nav.hjelpemidler
 
+import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
+import com.fasterxml.jackson.module.kotlin.readValue
 import mu.KotlinLogging
 import no.nav.hjelpemidler.configuration.Configuration
 import no.nav.helse.rapids_rivers.KafkaConfig
 import no.nav.helse.rapids_rivers.RapidApplication
 import no.nav.helse.rapids_rivers.RapidsConnection
+import no.nav.hjelpemidler.metrics.SensuMetrics
 import no.nav.hjelpemidler.rivers.LoggRiver
+import no.nav.hjelpemidler.service.azure.AzureClient
 import oracle.jdbc.OracleConnection
 import oracle.jdbc.pool.OracleDataSource
 import java.net.InetAddress
-import java.util.Properties
+import java.net.URI
+import java.net.http.HttpClient
+import java.net.http.HttpRequest
+import java.net.http.HttpResponse
+import java.time.LocalDateTime
+import java.util.*
+import kotlin.time.Duration
+import kotlin.time.ExperimentalTime
+import kotlin.time.measureTime
 
 private val logg = KotlinLogging.logger {}
 private val sikkerlogg = KotlinLogging.logger("tjenestekall")
 
+private val mapper = jacksonObjectMapper()
+
+private val azClient = AzureClient(Configuration.azureAD["AZURE_TENANT_BASEURL"]!! + "/" + Configuration.azureAD["AZURE_APP_TENANT_ID"]!!, Configuration.azureAD["AZURE_APP_CLIENT_ID"]!!, Configuration.azureAD["AZURE_APP_CLIENT_SECRET"]!!)
+private var azTokenTimeout: LocalDateTime? = null
+private var azToken: String? = null
+
+@ExperimentalTime
 fun main() {
     /*var rapidApp: RapidsConnection? = null
     rapidApp = RapidApplication.Builder(
@@ -46,47 +65,59 @@ fun main() {
     }
      */
 
-    // Set up database connection
-    val info = Properties()
-    info[OracleConnection.CONNECTION_PROPERTY_USER_NAME] = Configuration.oracleDatabaseConfig["HM_INFOTRYGDPOLLER_SRVUSER"]!!
-    info[OracleConnection.CONNECTION_PROPERTY_PASSWORD] = Configuration.oracleDatabaseConfig["HM_INFOTRYGDPOLLER_SRVPWD"]!!
-    info[OracleConnection.CONNECTION_PROPERTY_DEFAULT_ROW_PREFETCH] = "20"
+    val elapsed: Duration = measureTime {
 
-    val ods = OracleDataSource()
-    ods.url = Configuration.oracleDatabaseConfig["DATABASE_URL"]!!
-    ods.connectionProperties = info
+        val req = Request(
+            "2103",
+            "07010589518",
+            "A",
+            "04",
+        )
 
-    try {
-        val connection = ods.getConnection()
+        val json: String = mapper.writeValueAsString(req)
 
-        val dbmd = connection.metaData
-        println("Driver Name: " + dbmd.driverName)
-        println("Driver Version: " + dbmd.driverVersion)
-
-        println("")
-        println("Tables we have access to:")
-        connection.createStatement().use { statement ->
-            statement.executeQuery("SELECT owner, table_name FROM all_tables").use { resultSet ->
-                while (resultSet.next()) {
-                    println(resultSet.getString(1) + " " + resultSet.getString(2) + " ")
-                }
-            }
+        if (azTokenTimeout == null || azTokenTimeout?.isBefore(LocalDateTime.now()) == true) {
+            val token = azClient.getToken(Configuration.azureAD["AZURE_AD_SCOPE"]!!)
+            azToken = token.accessToken
+            azTokenTimeout = LocalDateTime.now()
+                .plusSeconds(token.expiresIn - 60 /* 60s leeway => renew 60s before token expiration */)
         }
 
-        println("")
-        println("All tables:")
-        connection.createStatement().use { statement ->
-            statement.executeQuery("SELECT table_name FROM dba_tables").use { resultSet ->
-                while (resultSet.next()) {
-                    println(resultSet.getString(1) + " ")
-                }
-            }
+        val authToken = azToken!!
+
+        // Execute request towards graphql API server
+        val client: HttpClient = HttpClient.newHttpClient()
+        val request: HttpRequest = HttpRequest.newBuilder()
+            .uri(URI.create(Configuration.infotrygdProxy["INFOTRYGDPROXY_URL"]!!))
+            .header("Content-Type", "application/json; charset=UTF-8")
+            .header("Accept", "application/json")
+            .header("X-Correlation-ID", UUID.randomUUID().toString())
+            .header("Authorization", "Bearer $authToken")
+            .POST(HttpRequest.BodyPublishers.ofString(json))
+            .build()
+        val httpResponse = client.send(request, HttpResponse.BodyHandlers.ofString())
+
+        // Check response codes
+        if (httpResponse.statusCode() < 200 || httpResponse.statusCode() >= 300) {
+            val statusCode = httpResponse.statusCode()
+            throw Exception("invalid response status code when requesting infotrygd data: req=$req statusCode=$statusCode")
         }
 
-    } catch (e: Exception) {
-        println("Exception: " + e.message.toString())
-        e.printStackTrace()
+        // Use the jackson object mapper to turn the returned raw json into a response object hierarchy
+        val response: Response = mapper.readValue(httpResponse.body().toString())
+
+        /*if ((response.errors != null && response.errors.isNotEmpty()) || response.data?.journalpost == null) {
+            SensuMetrics().safHentingFeilet()
+            val responseWasEmpty = response.data?.journalpost == null
+            val jsonErr = mapper.writeValueAsString(response.errors)
+            throw Exception("unable to fetch SAF details about journaling event: responseWasEmpty=$responseWasEmpty errors=$jsonErr")
+        }*/
+
+        logg.info("Response received from infotrygd: \"${response.result}\"")
+
     }
+
+    logg.info("Request time elapsed: ${elapsed.inMilliseconds}")
 
     Thread.sleep(1000*60*60*24)
 
@@ -97,3 +128,15 @@ fun main() {
     logg.info("Application ending.")
      */
 }
+
+
+data class Request(
+    val tknr: String,
+    val fnr: String,
+    val saksblokk: String,
+    val saksnr: String,
+)
+
+data class Response(
+    val result: String,
+)
