@@ -38,7 +38,8 @@ internal object Configuration {
             "SENSU_URL" to "https://digihot-proxy.dev-fss-pub.nais.io/sensu",
 
             "AZURE_TENANT_BASEURL" to "https://login.microsoftonline.com",
-            "AZURE_AD_SCOPE" to "api://dev-fss.teamdigihot.hm-infotrygd-proxy/.default",
+            // "AZURE_AD_SCOPE" to "api://dev-fss.teamdigihot.hm-infotrygd-proxy/.default",
+            "AZURE_AD_SCOPE" to "api://d82486df-92ef-4f0c-aa68-7d8ea8558d3a/.default",
 
             "INFOTRYGDPROXY_URL" to "https://hm-infotrygd-proxy.dev.adeo.no",
         )
