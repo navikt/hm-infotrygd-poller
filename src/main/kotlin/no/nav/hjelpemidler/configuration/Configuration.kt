@@ -24,7 +24,7 @@ internal object Configuration {
             "AZURE_TENANT_BASEURL" to "https://login.microsoftonline.com",
             "AZURE_AD_SCOPE" to "api://prod-fss.teamdigihot.hm-infotrygd-proxy/.default",
 
-            "INFOTRYGDPROXY_URL" to "https://hm-infotrygd-proxy.prod-fss-pub.nais.io",
+            "INFOTRYGDPROXY_URL" to "https://hm-infotrygd-proxy.intern.nav.no",
         )
     )
 
@@ -38,10 +38,9 @@ internal object Configuration {
             "SENSU_URL" to "https://digihot-proxy.dev-fss-pub.nais.io/sensu",
 
             "AZURE_TENANT_BASEURL" to "https://login.microsoftonline.com",
-            // "AZURE_AD_SCOPE" to "api://dev-fss.teamdigihot.hm-infotrygd-proxy/.default",
-            "AZURE_AD_SCOPE" to "api://f9397e9f-f328-4e1a-a264-a37eb0dde925/.default",
+            "AZURE_AD_SCOPE" to "api://dev-fss.teamdigihot.hm-infotrygd-proxy/.default",
 
-            "INFOTRYGDPROXY_URL" to "https://hm-infotrygd-proxy.dev-fss-pub.nais.io",
+            "INFOTRYGDPROXY_URL" to "https://hm-infotrygd-proxy.dev.intern.nav.no",
         )
     )
 
