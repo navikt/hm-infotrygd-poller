@@ -21,3 +21,7 @@ spec:
   azure:
     application:
       enabled: true
+  accessPolicy:
+    outbound:
+      external:
+        - host: hm-infotrygd-proxy.dev.intern.nav.no
