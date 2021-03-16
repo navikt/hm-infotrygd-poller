@@ -84,11 +84,12 @@ fun main() {
         }
 
         val authToken = azToken!!
+        val url = Configuration.infotrygdProxy["INFOTRYGDPROXY_URL"]!! + "/result"
 
         // Execute request towards graphql API server
         val client: HttpClient = HttpClient.newHttpClient()
         val request: HttpRequest = HttpRequest.newBuilder()
-            .uri(URI.create(Configuration.infotrygdProxy["INFOTRYGDPROXY_URL"]!!))
+            .uri(URI.create(url))
             .header("Content-Type", "application/json; charset=UTF-8")
             .header("Accept", "application/json")
             .header("X-Correlation-ID", UUID.randomUUID().toString())
