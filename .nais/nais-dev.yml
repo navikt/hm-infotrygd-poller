@@ -25,3 +25,6 @@ spec:
     outbound:
       external:
         - host: hm-infotrygd-proxy.dev.intern.nav.no
+          ports:
+            - port: 443
+              protocol: HTTPS
