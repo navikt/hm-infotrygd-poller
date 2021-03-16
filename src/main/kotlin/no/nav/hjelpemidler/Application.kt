@@ -85,6 +85,7 @@ fun main() {
 
         val authToken = azToken!!
         val url = Configuration.infotrygdProxy["INFOTRYGDPROXY_URL"]!! + "/result"
+        logg.info("Making proxy request with url: $url and json: $json. Token: $authToken")
 
         // Execute request towards graphql API server
         val client: HttpClient = HttpClient.newHttpClient()
