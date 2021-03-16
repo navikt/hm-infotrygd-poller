@@ -39,7 +39,7 @@ internal object Configuration {
 
             "AZURE_TENANT_BASEURL" to "https://login.microsoftonline.com",
             // "AZURE_AD_SCOPE" to "api://dev-fss.teamdigihot.hm-infotrygd-proxy/.default",
-            "AZURE_AD_SCOPE" to "api://d82486df-92ef-4f0c-aa68-7d8ea8558d3a/.default",
+            "AZURE_AD_SCOPE" to "api://f9397e9f-f328-4e1a-a264-a37eb0dde925/.default",
 
             "INFOTRYGDPROXY_URL" to "https://hm-infotrygd-proxy.dev.adeo.no",
         )
