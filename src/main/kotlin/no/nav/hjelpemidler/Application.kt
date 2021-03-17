@@ -65,6 +65,10 @@ fun main() {
     }
      */
 
+
+    logg.info("Hello world: waiting for 1min until pods are running, hopefully")
+    Thread.sleep(1000*60)
+
     val elapsed: Duration = measureTime {
 
         val req = Request(
