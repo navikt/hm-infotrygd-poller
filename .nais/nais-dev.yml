@@ -24,8 +24,4 @@ spec:
   accessPolicy:
     outbound:
       external:
-        - host: hm-infotrygd-proxy.dev.intern.nav.no
-          ports:
-            - port: 443
-              protocol: HTTPS
-              name: hm-infotrygd-proxy
+        - host: hm-infotrygd-proxy.dev-fss-pub.nais.io

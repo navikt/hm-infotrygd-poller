@@ -24,7 +24,7 @@ internal object Configuration {
             "AZURE_TENANT_BASEURL" to "https://login.microsoftonline.com",
             "AZURE_AD_SCOPE" to "api://prod-fss.teamdigihot.hm-infotrygd-proxy/.default",
 
-            "INFOTRYGDPROXY_URL" to "https://hm-infotrygd-proxy.intern.nav.no",
+            "INFOTRYGDPROXY_URL" to "https://hm-infotrygd-proxy.prod-fss-pub.nais.io",
         )
     )
 
@@ -40,7 +40,7 @@ internal object Configuration {
             "AZURE_TENANT_BASEURL" to "https://login.microsoftonline.com",
             "AZURE_AD_SCOPE" to "api://dev-fss.teamdigihot.hm-infotrygd-proxy/.default",
 
-            "INFOTRYGDPROXY_URL" to "https://hm-infotrygd-proxy.dev.intern.nav.no",
+            "INFOTRYGDPROXY_URL" to "https://hm-infotrygd-proxy.dev-fss-pub.nais.io",
         )
     )
 
