@@ -65,66 +65,57 @@ fun main() {
     }
      */
 
+    for (i in 1..10) {
+        logg.info("Making test query #$i:")
+        var result: String? = null
+        val elapsed: Duration = measureTime {
 
-    logg.info("Hello world: waiting for 1min until pods are running, hopefully")
-    Thread.sleep(1000*60)
+            val req = Request(
+                "2103",
+                "07010589518",
+                "A",
+                "04",
+            )
 
-    val elapsed: Duration = measureTime {
+            val json: String = mapper.writeValueAsString(req)
 
-        val req = Request(
-            "2103",
-            "07010589518",
-            "A",
-            "04",
-        )
+            if (azTokenTimeout == null || azTokenTimeout?.isBefore(LocalDateTime.now()) == true) {
+                val token = azClient.getToken(Configuration.azureAD["AZURE_AD_SCOPE"]!!)
+                azToken = token.accessToken
+                azTokenTimeout = LocalDateTime.now()
+                    .plusSeconds(token.expiresIn - 60 /* 60s leeway => renew 60s before token expiration */)
+            }
 
-        val json: String = mapper.writeValueAsString(req)
+            val authToken = azToken!!
+            val url = Configuration.infotrygdProxy["INFOTRYGDPROXY_URL"]!! + "/vedtak-resultat"
+            logg.info("Making proxy request with url: $url and json: $json. Token: $authToken")
 
-        if (azTokenTimeout == null || azTokenTimeout?.isBefore(LocalDateTime.now()) == true) {
-            val token = azClient.getToken(Configuration.azureAD["AZURE_AD_SCOPE"]!!)
-            azToken = token.accessToken
-            azTokenTimeout = LocalDateTime.now()
-                .plusSeconds(token.expiresIn - 60 /* 60s leeway => renew 60s before token expiration */)
+            // Execute request towards graphql API server
+            val client: HttpClient = HttpClient.newHttpClient()
+            val request: HttpRequest = HttpRequest.newBuilder()
+                .uri(URI.create(url))
+                .header("Content-Type", "application/json; charset=UTF-8")
+                .header("Accept", "application/json")
+                .header("X-Correlation-ID", UUID.randomUUID().toString())
+                .header("Authorization", "Bearer $authToken")
+                .POST(HttpRequest.BodyPublishers.ofString(json))
+                .build()
+            val httpResponse = client.send(request, HttpResponse.BodyHandlers.ofString())
+
+            // Check response codes
+            if (httpResponse.statusCode() < 200 || httpResponse.statusCode() >= 300) {
+                val statusCode = httpResponse.statusCode()
+                throw Exception("invalid response status code when requesting infotrygd data: req=$req statusCode=$statusCode")
+            }
+
+            result = httpResponse.body().toString()
         }
 
-        val authToken = azToken!!
-        val url = Configuration.infotrygdProxy["INFOTRYGDPROXY_URL"]!! + "/result"
-        logg.info("Making proxy request with url: $url and json: $json. Token: $authToken")
-
-        // Execute request towards graphql API server
-        val client: HttpClient = HttpClient.newHttpClient()
-        val request: HttpRequest = HttpRequest.newBuilder()
-            .uri(URI.create(url))
-            .header("Content-Type", "application/json; charset=UTF-8")
-            .header("Accept", "application/json")
-            .header("X-Correlation-ID", UUID.randomUUID().toString())
-            .header("Authorization", "Bearer $authToken")
-            .POST(HttpRequest.BodyPublishers.ofString(json))
-            .build()
-        val httpResponse = client.send(request, HttpResponse.BodyHandlers.ofString())
-
-        // Check response codes
-        if (httpResponse.statusCode() < 200 || httpResponse.statusCode() >= 300) {
-            val statusCode = httpResponse.statusCode()
-            throw Exception("invalid response status code when requesting infotrygd data: req=$req statusCode=$statusCode")
-        }
-
-        // Use the jackson object mapper to turn the returned raw json into a response object hierarchy
-        val response: Response = mapper.readValue(httpResponse.body().toString())
-
-        /*if ((response.errors != null && response.errors.isNotEmpty()) || response.data?.journalpost == null) {
-            SensuMetrics().safHentingFeilet()
-            val responseWasEmpty = response.data?.journalpost == null
-            val jsonErr = mapper.writeValueAsString(response.errors)
-            throw Exception("unable to fetch SAF details about journaling event: responseWasEmpty=$responseWasEmpty errors=$jsonErr")
-        }*/
-
-        logg.info("Response received from infotrygd: \"${response.result}\"")
-
+        logg.info("Response received from infotrygd: $result. Total request time elapsed: ${elapsed.inMilliseconds}")
+        Thread.sleep(1000*60)
     }
 
-    logg.info("Request time elapsed: ${elapsed.inMilliseconds}")
-
+    logg.info("Loop complete, sleeping for 24hrs and quitting after that...")
     Thread.sleep(1000*60*60*24)
 
     /*
@@ -135,14 +126,9 @@ fun main() {
      */
 }
 
-
 data class Request(
     val tknr: String,
     val fnr: String,
     val saksblokk: String,
     val saksnr: String,
-)
-
-data class Response(
-    val result: String,
 )
