@@ -65,19 +65,24 @@ fun main() {
     }
      */
 
-    for (i in 1..10) {
-        logg.info("Making test query #$i:")
-        var result: String? = null
+    for (i in 1..4) {
+        logg.info("Making test query #$i/4:")
+        var results: String? = null
         val elapsed: Duration = measureTime {
 
-            val req = Request(
+            val reqs = listOf(Request(
                 "2103",
                 "07010589518",
                 "A",
                 "04",
-            )
+            ), Request(
+                "2103",
+                "07010589518",
+                "A",
+                "04",
+            ))
 
-            val json: String = mapper.writeValueAsString(req)
+            val json: String = mapper.writeValueAsString(reqs)
 
             if (azTokenTimeout == null || azTokenTimeout?.isBefore(LocalDateTime.now()) == true) {
                 val token = azClient.getToken(Configuration.azureAD["AZURE_AD_SCOPE"]!!)
@@ -108,10 +113,10 @@ fun main() {
                 throw Exception("invalid response status code when requesting infotrygd data: req=$req statusCode=$statusCode responseBody: ${httpResponse.body()}")
             }
 
-            result = httpResponse.body().toString()
+            results = httpResponse.body().toString()
         }
 
-        logg.info("Response received from infotrygd: $result. Total request time elapsed: ${elapsed.inMilliseconds}")
+        logg.info("Response received from infotrygd: $results. Total request time elapsed: ${elapsed.inMilliseconds}")
         Thread.sleep(1000*60)
     }
 
