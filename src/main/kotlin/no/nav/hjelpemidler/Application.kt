@@ -110,7 +110,7 @@ fun main() {
             // Check response codes
             if (httpResponse.statusCode() < 200 || httpResponse.statusCode() >= 300) {
                 val statusCode = httpResponse.statusCode()
-                throw Exception("invalid response status code when requesting infotrygd data: req=$req statusCode=$statusCode responseBody: ${httpResponse.body()}")
+                throw Exception("invalid response status code when requesting infotrygd data: req=$reqs statusCode=$statusCode responseBody: ${httpResponse.body()}")
             }
 
             results = httpResponse.body().toString()
