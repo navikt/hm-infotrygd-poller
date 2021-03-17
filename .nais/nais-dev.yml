@@ -28,3 +28,4 @@ spec:
           ports:
             - port: 443
               protocol: HTTPS
+              name: hm-infotrygd-proxy
