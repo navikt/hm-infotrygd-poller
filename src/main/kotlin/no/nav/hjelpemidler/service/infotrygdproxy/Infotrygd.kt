@@ -30,7 +30,7 @@ class Infotrygd {
     fun batchQueryVedtakResultat(reqs: List<Request>): List<Response> {
         logg.info("DEBUG: batchQueryVedtakResultat: reqs=$reqs")
 
-        var results: Array<Response>? = null
+        var results: List<Response>? = null
         val elapsed: Duration = measureTime {
             val json: String = mapper.writeValueAsString(reqs.toTypedArray())
 
@@ -66,7 +66,8 @@ class Infotrygd {
 
             val jsonResp = httpResponse.body().toString()
             logg.info("DEBUG: received response pre-parsing: $jsonResp")
-            results = Klaxon().parse(jsonResp)
+            // val resultsInner: List<Response> = Klaxon().parseArray(jsonResp)!!
+            results = Klaxon().parseArray(jsonResp)
         }
 
         logg.info("DEBUG: Response received from infotrygd: $results. Total request time elapsed: ${elapsed.inMilliseconds}")
@@ -89,3 +90,16 @@ class Infotrygd {
         val queryTimeElapsedMs: Double,
     )
 }
+
+/*
+[
+    {
+        \"queryTimeElapsedMs\" : 5.734309,
+        \"req\" :
+            {\"fnr\" : \"07010589518\", \"id\" : \"\", \"saksblokk\" : \"A\", \"saksnr\" : \"04\", \"tknr\" : \"2103\"},
+        \"result\" : \"IM\"
+    },
+    {\"queryTimeElapsedMs\" : 1.192449, \"req\" : {\"fnr\" : \"07010589518\", \"id\" : \"\", \"saksblokk\" : \"A\", \"saksnr\" : \"04\", \"tknr\" : \"2103\"}, \"result\" : \"IM\"}
+]
+Exception in thread "Thread-1" java.lang.ClassCastException: class com.beust.klaxon.JsonArray cannot be cast to class com.beust.klaxon.JsonObject (com.beust.klaxon.JsonArray and com.beust.klaxon.JsonObject are in unnamed module of loader 'app')
+ */
