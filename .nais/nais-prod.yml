@@ -22,3 +22,17 @@ spec:
     path: /isready
   secureLogs:
     enabled: true
+  gcp:
+    sqlInstances:
+      - name: hm-infotrygd-poller-db-prod
+        type: POSTGRES_12
+        tier: db-g1-small
+        diskType: SSD
+        highAvailability: true
+        diskSize: 10
+        diskAutoresize: true
+        autoBackupTime: "03:00"
+        databases:
+          - name: infotrygd-poller
+            envVarPrefix: DB
+        cascadingDelete: false

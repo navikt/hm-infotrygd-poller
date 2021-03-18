@@ -25,3 +25,17 @@ spec:
     outbound:
       external:
         - host: hm-infotrygd-proxy.dev-fss-pub.nais.io
+  gcp:
+    sqlInstances:
+      - name: hm-infotrygd-poller-db-dev
+        type: POSTGRES_12
+        tier: db-f1-micro
+        diskType: SSD
+        highAvailability: false
+        diskSize: 5
+        diskAutoresize: true
+        autoBackupTime: "03:00"
+        databases:
+          - name: infotrygd-poller
+            envVarPrefix: DB
+        cascadingDelete: false

@@ -66,7 +66,6 @@ class Infotrygd {
 
             val jsonResp: String = httpResponse.body()
             logg.info("DEBUG: received response pre-parsing: $jsonResp")
-            // val resultsInner: List<Response> = Klaxon().parseArray(jsonResp)!!
             results = Klaxon().parseArray(jsonResp)
         }
 
@@ -86,6 +85,7 @@ class Infotrygd {
     data class Response(
         val req: Request,
         val result: String? = null, // null initialization required for Klaxon deserialization if not mentioned in response (due to null)
+        val vedtaksDate: String? = null, // null initialization required for Klaxon deserialization if not mentioned in response (due to null)
         val error: String? = null, // null initialization required for Klaxon deserialization if not mentioned in response (due to null)
         val queryTimeElapsedMs: Double,
     )
