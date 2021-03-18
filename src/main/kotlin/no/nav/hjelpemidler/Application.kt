@@ -1,5 +1,6 @@
 package no.nav.hjelpemidler
 
+import com.beust.klaxon.Klaxon
 import mu.KotlinLogging
 import no.nav.hjelpemidler.configuration.Configuration
 import no.nav.helse.rapids_rivers.KafkaConfig

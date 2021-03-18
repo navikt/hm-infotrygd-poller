@@ -64,7 +64,7 @@ class Infotrygd {
                 throw Exception("invalid response status code when requesting infotrygd data: req=$reqs statusCode=$statusCode responseBody: ${httpResponse.body()}")
             }
 
-            val jsonResp = httpResponse.body().toString()
+            val jsonResp: String = httpResponse.body()
             logg.info("DEBUG: received response pre-parsing: $jsonResp")
             // val resultsInner: List<Response> = Klaxon().parseArray(jsonResp)!!
             results = Klaxon().parseArray(jsonResp)
@@ -85,21 +85,8 @@ class Infotrygd {
 
     data class Response(
         val req: Request,
-        val result: String?,
-        val error: String?,
+        val result: String? = null, // null initialization required for Klaxon deserialization if not mentioned in response (due to null)
+        val error: String? = null, // null initialization required for Klaxon deserialization if not mentioned in response (due to null)
         val queryTimeElapsedMs: Double,
     )
 }
-
-/*
-[
-    {
-        \"queryTimeElapsedMs\" : 5.734309,
-        \"req\" :
-            {\"fnr\" : \"07010589518\", \"id\" : \"\", \"saksblokk\" : \"A\", \"saksnr\" : \"04\", \"tknr\" : \"2103\"},
-        \"result\" : \"IM\"
-    },
-    {\"queryTimeElapsedMs\" : 1.192449, \"req\" : {\"fnr\" : \"07010589518\", \"id\" : \"\", \"saksblokk\" : \"A\", \"saksnr\" : \"04\", \"tknr\" : \"2103\"}, \"result\" : \"IM\"}
-]
-Exception in thread "Thread-1" java.lang.ClassCastException: class com.beust.klaxon.JsonArray cannot be cast to class com.beust.klaxon.JsonObject (com.beust.klaxon.JsonArray and com.beust.klaxon.JsonObject are in unnamed module of loader 'app')
- */
