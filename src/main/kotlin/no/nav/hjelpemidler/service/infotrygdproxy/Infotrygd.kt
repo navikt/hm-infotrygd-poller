@@ -64,7 +64,9 @@ class Infotrygd {
                 throw Exception("invalid response status code when requesting infotrygd data: req=$reqs statusCode=$statusCode responseBody: ${httpResponse.body()}")
             }
 
-            results = Klaxon().parse(httpResponse.body().toString())
+            val jsonResp = httpResponse.body().toString()
+            logg.info("DEBUG: received response pre-parsing: $jsonResp")
+            results = Klaxon().parse(jsonResp)
         }
 
         logg.info("DEBUG: Response received from infotrygd: $results. Total request time elapsed: ${elapsed.inMilliseconds}")
