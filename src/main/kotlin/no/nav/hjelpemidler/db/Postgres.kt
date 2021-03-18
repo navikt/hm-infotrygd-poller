@@ -17,8 +17,8 @@ internal fun hikariConfig() =
         idleTimeout = 10001
         connectionTimeout = 1000
         maxLifetime = 30001
-        Configuration.db["DB_USERNAME"]!!
-        Configuration.db["DB_PASSWORD"]!!
+        username = Configuration.db["DB_USERNAME"]!!
+        password = Configuration.db["DB_PASSWORD"]!!
     }
 
 internal fun dataSource(): HikariDataSource = HikariDataSource(hikariConfig())
