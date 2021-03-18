@@ -68,6 +68,12 @@ internal object Configuration {
             "AZURE_AD_SCOPE" to "123",
 
             "INFOTRYGDPROXY_URL" to "http://localhost:9092",
+
+            "DB_HOST" to "abc",
+            "DB_PORT" to "abc",
+            "DB_DATABASE" to "abc",
+            "DB_USERNAME" to "abc",
+            "DB_PASSWORD" to "abc",
         )
     )
 
@@ -96,6 +102,14 @@ internal object Configuration {
 
     val infotrygdProxy: Map<String, String> = mapOf(
         "INFOTRYGDPROXY_URL" to config()[Key("INFOTRYGDPROXY_URL", stringType)],
+    )
+
+    val db: Map<String, String> = mapOf(
+        "DB_HOST" to config()[Key("DB_HOST", stringType)],
+        "DB_PORT" to config()[Key("DB_PORT", stringType)],
+        "DB_DATABASE" to config()[Key("DB_DATABASE", stringType)],
+        "DB_USERNAME" to config()[Key("DB_USERNAME", stringType)],
+        "DB_PASSWORD" to config()[Key("DB_PASSWORD", stringType)],
     )
 
     val application: Map<String, String> = mapOf(

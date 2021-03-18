@@ -10,6 +10,8 @@ val kafka_version: String by project
 val influxdb_version: String by project
 val klaxon_version: String by project
 val ojdbc_version: String by project
+val hikari_version: String by project
+val flyway_version: String by project
 
 group = "no.nav.hjelpemidler"
 version = "1.0-SNAPSHOT"
@@ -29,6 +31,8 @@ dependencies {
     implementation("org.influxdb:influxdb-java:$influxdb_version")
     implementation("com.beust:klaxon:$klaxon_version")
     implementation("com.oracle.database.jdbc:ojdbc8:$ojdbc_version")
+    implementation("com.zaxxer:HikariCP:$hikari_version")
+    implementation("org.flywaydb:flyway-core:$flyway_version")
 }
 
 tasks.withType<KotlinCompile>() {

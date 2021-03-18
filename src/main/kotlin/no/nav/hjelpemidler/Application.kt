@@ -8,6 +8,7 @@ import no.nav.helse.rapids_rivers.RapidApplication
 import no.nav.helse.rapids_rivers.RapidsConnection
 import no.nav.hjelpemidler.rivers.LoggRiver
 import no.nav.hjelpemidler.service.infotrygdproxy.Infotrygd
+import no.nav.hjelpemidler.soknad.mottak.db.migrate
 import java.net.InetAddress
 import kotlin.concurrent.thread
 import kotlin.time.ExperimentalTime
@@ -45,6 +46,13 @@ fun main() {
         )
     ).build().apply {
         LoggRiver(this)
+        register(
+            object : RapidsConnection.StatusListener {
+                override fun onStartup(rapidsConnection: RapidsConnection) {
+                    migrate()
+                }
+            }
+        )
     }
 
     // Test script
