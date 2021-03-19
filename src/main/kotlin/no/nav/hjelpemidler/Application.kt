@@ -1,6 +1,5 @@
 package no.nav.hjelpemidler
 
-import com.beust.klaxon.Klaxon
 import mu.KotlinLogging
 import no.nav.hjelpemidler.configuration.Configuration
 import no.nav.helse.rapids_rivers.KafkaConfig
@@ -9,15 +8,20 @@ import no.nav.helse.rapids_rivers.RapidsConnection
 import no.nav.hjelpemidler.rivers.LoggRiver
 import no.nav.hjelpemidler.service.infotrygdproxy.Infotrygd
 import no.nav.hjelpemidler.soknad.mottak.db.migrate
+import no.nav.hjelpemidler.soknad.mottak.db.waitForDB
 import java.net.InetAddress
 import kotlin.concurrent.thread
-import kotlin.time.ExperimentalTime
+import kotlin.time.*
 
 private val logg = KotlinLogging.logger {}
 // private val sikkerlogg = KotlinLogging.logger("tjenestekall")
 
 @ExperimentalTime
 fun main() {
+    if (!waitForDB(10.minutes)) {
+        throw Exception("database never became available withing the deadline")
+    }
+
     var rapidApp: RapidsConnection? = null
     rapidApp = RapidApplication.Builder(
         RapidApplication.RapidApplicationConfig(
