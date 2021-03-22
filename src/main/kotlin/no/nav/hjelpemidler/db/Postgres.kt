@@ -1,4 +1,4 @@
-package no.nav.hjelpemidler.soknad.mottak.db
+package no.nav.hjelpemidler.db
 
 import com.zaxxer.hikari.HikariConfig
 import com.zaxxer.hikari.HikariDataSource

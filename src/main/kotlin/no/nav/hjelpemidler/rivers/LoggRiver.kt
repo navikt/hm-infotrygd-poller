@@ -19,6 +19,6 @@ internal class LoggRiver(
 
     override fun onPacket(packet: JsonMessage, context: RapidsConnection.MessageContext) {
         val rawJson = packet.toJson()
-        logg.info("Mottok pakke med Json $rawJson")
+        sikkerlogg.info("DEBUG: Mottok pakke med Json: $rawJson")
     }
 }

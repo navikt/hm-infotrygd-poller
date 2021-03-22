@@ -76,8 +76,8 @@ class Infotrygd {
 
     data class Request(
         val id: String,
-        val tknr: String,
         val fnr: String,
+        val tknr: String,
         val saksblokk: String,
         val saksnr: String,
     )

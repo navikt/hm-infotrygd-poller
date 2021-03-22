@@ -5,10 +5,13 @@ import no.nav.hjelpemidler.configuration.Configuration
 import no.nav.helse.rapids_rivers.KafkaConfig
 import no.nav.helse.rapids_rivers.RapidApplication
 import no.nav.helse.rapids_rivers.RapidsConnection
+import no.nav.hjelpemidler.db.PollListStorePostgres
 import no.nav.hjelpemidler.rivers.LoggRiver
 import no.nav.hjelpemidler.service.infotrygdproxy.Infotrygd
-import no.nav.hjelpemidler.soknad.mottak.db.migrate
-import no.nav.hjelpemidler.soknad.mottak.db.waitForDB
+import no.nav.hjelpemidler.db.dataSource
+import no.nav.hjelpemidler.db.migrate
+import no.nav.hjelpemidler.db.waitForDB
+import no.nav.hjelpemidler.rivers.InfotrygdAddToPollVedtakListRiver
 import java.net.InetAddress
 import kotlin.concurrent.thread
 import kotlin.time.*
@@ -22,6 +25,13 @@ fun main() {
         throw Exception("database never became available withing the deadline")
     }
 
+    // Make sure our database migrations are up to date
+    migrate()
+
+    // Set up our database connection
+    val store = PollListStorePostgres(dataSource())
+
+    // Define our rapid and rivers app
     var rapidApp: RapidsConnection? = null
     rapidApp = RapidApplication.Builder(
         RapidApplication.RapidApplicationConfig(
@@ -50,45 +60,81 @@ fun main() {
         )
     ).build().apply {
         LoggRiver(this)
-        register(
-            object : RapidsConnection.StatusListener {
-                override fun onStartup(rapidsConnection: RapidsConnection) {
-                    migrate()
-                }
-            }
-        )
+        InfotrygdAddToPollVedtakListRiver(this, store)
     }
 
-    // Test script
+    // Run background daemon for polling Infotrygd
     thread(isDaemon = true) {
-        Thread.sleep(1000*60)
+        while (true) {
+            // Check every 10s
+            Thread.sleep(1000*10)
 
-        val reqs = listOf(
-            Infotrygd.Request(
-                "",
-                "2103",
-                "07010589518",
-                "A",
-                "04",
-            ), Infotrygd.Request(
-                "",
-                "2103",
-                "07010589518",
-                "A",
-                "04",
-            )
-        )
+            // Catch any and all database errors
+            try {
 
-        logg.info("DEBUG: Starter spørring...")
-        val res = Infotrygd().batchQueryVedtakResultat(reqs)
-        logg.info("DEBUG: Resultat fra infotrygdspørring:")
-        for (r in res) {
-            logg.info("DEBUG: - Resultat: resultat: ${r.result}, elapsed tid: ${r.queryTimeElapsedMs}ms, req: ${r.req}, error: ${r.error}")
+                // Get the next batch to check for results:
+                val list = store.getPollingBatch(100)
+                if (list.isEmpty()) continue
+
+                val innerList: MutableList<Infotrygd.Request> = mutableListOf()
+                for (poll in list) {
+                    innerList.add(Infotrygd.Request(
+                        poll.søknadsID,
+                        poll.fnr,
+                        poll.tknr,
+                        poll.saksblokk,
+                        poll.saksnr,
+                    ))
+                }
+
+                var results: List<Infotrygd.Response>? = null
+
+                // Catch any Infotrygd related errors specially here since we expect lots of downtime
+                try {
+                    results = Infotrygd().batchQueryVedtakResultat(innerList)
+                } catch(e: Exception) {
+                    logg.warn("warn: problem polling Infotrygd, some downtime is expected though (up to 24hrs now and then) so we only warn here: $e")
+                    e.printStackTrace()
+
+                    logg.warn("warn: sleeping for 10min due to error, before continuing")
+                    Thread.sleep(1000*60*10)
+                    continue
+                }
+
+                // We have successfully batch checked for decisions on Vedtaker, now updating
+                // last polled timestamp and number of pulls for each of the items in the list
+                store.postPollingUpdate(list)
+
+                // Check for decisions found:
+                for (result in results) {
+                    if (result.result == "") continue // No decision made yet
+
+                    // Decision made, lets send it out on the rapid and then delete it from the polling list
+                    rapidApp.publish("""
+                        {
+                            "eventName": "VedtaksResultat",
+                            "søknadsID": "${result.req.id}",
+                            "resultat": "${result.result}",
+                            "vedtaksDate": "${result.vedtaksDate}"
+                        }
+                    """.trimIndent())
+
+                    store.remove(result.req.id)
+                }
+
+            } catch (e: Exception) {
+                logg.error("error: encountered an exception while processing Infotrygd polls: $e")
+                e.printStackTrace()
+
+                logg.error("error: sleeping for 10min due to error, before continuing")
+                Thread.sleep(1000*60*10)
+                continue
+            }
         }
     }
 
-    // Run our rapid and rivers implementation facing hm-rapid
-    logg.info("Starting Rapid & Rivers app towards hm-rapid")
+    // Run our rapid and rivers implementation
+    logg.info("Starting Rapid & Rivers app")
     rapidApp.start()
     logg.info("Application ending.")
 }
