@@ -89,9 +89,9 @@ internal class PollListStorePostgres(private val ds: DataSource) : PollListStore
             WHERE (
                 LAST_POLL IS NULL
                 OR
-                LAST_POLL < NOW() - INTERVAL '1 MINUTES'
+                LAST_POLL <= NOW() - '60 seconds'::interval   
             )
-            LIMIT 100
+            LIMIT ?
         """.trimIndent().split("\n").joinToString(" ")
 
         return time("getPollingBatch") {
@@ -99,6 +99,7 @@ internal class PollListStorePostgres(private val ds: DataSource) : PollListStore
                 session.run(
                     queryOf(
                         statement,
+                        size,
                     ).map {
                         Poll(
                             it.string("SOKNADS_ID"),
