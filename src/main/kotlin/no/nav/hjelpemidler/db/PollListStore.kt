@@ -65,7 +65,7 @@ internal class PollListStorePostgres(private val ds: DataSource) : PollListStore
             WHERE SOKNADS_ID = ?
         """.trimIndent().split("\n").joinToString(" ")
 
-       if (!time("remove") {
+       time("remove") {
             using(sessionOf(ds)) { session ->
                 session.run(
                     queryOf(
@@ -74,9 +74,7 @@ internal class PollListStorePostgres(private val ds: DataSource) : PollListStore
                     ).asExecute
                 )
             }
-        }) {
-           throw Exception("removing poll item from poll list failed unexpectedly with the command returning false")
-       }
+        }
     }
 
     override fun getPollingBatch(size: Int): List<Poll> {
