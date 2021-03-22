@@ -89,6 +89,7 @@ internal class PollListStorePostgres(private val ds: DataSource) : PollListStore
                 NUMBER_OF_POLLINGS,
                 LAST_POLL
             FROM public.V1_POLL_LIST
+            LIMIT $size
         """.trimIndent().split("\n").joinToString(" ")
 
         return time("getPollingBatch") {
@@ -96,7 +97,6 @@ internal class PollListStorePostgres(private val ds: DataSource) : PollListStore
                 session.run(
                     queryOf(
                         statement,
-                        size,
                     ).map {
                         logg.info("DEBUG: here: ${it.toString()}")
                         Poll(
