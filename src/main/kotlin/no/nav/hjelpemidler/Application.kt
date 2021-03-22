@@ -76,7 +76,7 @@ fun main() {
 
                 // Get the next batch to check for results:
                 val list = store.getPollingBatch(100)
-                logg.info("DEBUG: fetched list: $list")
+                logg.info("DEBUG: fetched list: $list (list size: ${list.size})")
                 if (list.isEmpty()) continue
 
                 val innerList: MutableList<Infotrygd.Request> = mutableListOf()

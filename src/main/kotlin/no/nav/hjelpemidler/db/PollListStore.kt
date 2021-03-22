@@ -3,9 +3,12 @@ package no.nav.hjelpemidler.db
 import kotliquery.queryOf
 import kotliquery.sessionOf
 import kotliquery.using
+import mu.KotlinLogging
 import org.intellij.lang.annotations.Language
 import java.time.LocalDateTime
 import javax.sql.DataSource
+
+private val logg = KotlinLogging.logger {}
 
 internal interface PollListStore {
     fun add(søknadsID: String, fnr: String, tknr: String, saksblokk: String, saksnr: String)
@@ -86,7 +89,6 @@ internal class PollListStorePostgres(private val ds: DataSource) : PollListStore
                 NUMBER_OF_POLLINGS,
                 LAST_POLL
             FROM public.V1_POLL_LIST
-            LIMIT ?
         """.trimIndent().split("\n").joinToString(" ")
 
         return time("getPollingBatch") {
@@ -96,6 +98,7 @@ internal class PollListStorePostgres(private val ds: DataSource) : PollListStore
                         statement,
                         size,
                     ).map {
+                        logg.info("DEBUG: here: ${it.toString()}")
                         Poll(
                             it.string("SOKNADS_ID"),
                             it.string("FNR_BRUKER"),
