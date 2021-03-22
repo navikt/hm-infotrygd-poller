@@ -13,6 +13,7 @@ import no.nav.hjelpemidler.db.migrate
 import no.nav.hjelpemidler.db.waitForDB
 import no.nav.hjelpemidler.rivers.InfotrygdAddToPollVedtakListRiver
 import java.net.InetAddress
+import java.util.*
 import kotlin.concurrent.thread
 import kotlin.time.*
 
@@ -83,7 +84,7 @@ fun main() {
                 for (poll in list) {
                     logg.info("DEBUG: innerList: poll: $poll")
                     innerList.add(Infotrygd.Request(
-                        poll.søknadsID,
+                        poll.søknadsID.toString(),
                         poll.fnr,
                         poll.tknr,
                         poll.saksblokk,
@@ -127,7 +128,7 @@ fun main() {
                     """.trimIndent())
 
                     logg.info("DEBUG: Removing from store: $result")
-                    store.remove(result.req.id)
+                    store.remove(UUID.fromString(result.req.id))
                 }
 
             } catch (e: Exception) {
