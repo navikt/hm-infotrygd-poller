@@ -85,12 +85,7 @@ internal class PollListStorePostgres(private val ds: DataSource) : PollListStore
                 SAKSNR,
                 NUMBER_OF_POLLINGS,
                 LAST_POLL
-            FROM public.V1_POLL_LIST 
-            WHERE (
-                LAST_POLL IS NULL
-                OR
-                LAST_POLL <= NOW() - '60 seconds'::interval   
-            )
+            FROM public.V1_POLL_LIST
             LIMIT ?
         """.trimIndent().split("\n").joinToString(" ")
 
