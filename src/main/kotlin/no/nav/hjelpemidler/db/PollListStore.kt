@@ -6,19 +6,20 @@ import kotliquery.using
 import mu.KotlinLogging
 import org.intellij.lang.annotations.Language
 import java.time.LocalDateTime
+import java.util.*
 import javax.sql.DataSource
 
 private val logg = KotlinLogging.logger {}
 
 internal interface PollListStore {
-    fun add(søknadsID: String, fnr: String, tknr: String, saksblokk: String, saksnr: String)
-    fun remove(søknadsID: String)
+    fun add(søknadsID: UUID, fnr: String, tknr: String, saksblokk: String, saksnr: String)
+    fun remove(søknadsID: UUID)
     fun getPollingBatch(size: Int): List<Poll>
     fun postPollingUpdate(list: List<Poll>)
 }
 
 data class Poll (
-    val søknadsID: String,
+    val søknadsID: UUID,
     val fnr: String,
     val tknr: String,
     val saksblokk: String,
@@ -29,7 +30,7 @@ data class Poll (
 
 internal class PollListStorePostgres(private val ds: DataSource) : PollListStore {
 
-    override fun add(søknadsID: String, fnr: String, tknr: String, saksblokk: String, saksnr: String) {
+    override fun add(søknadsID: UUID, fnr: String, tknr: String, saksblokk: String, saksnr: String) {
         @Language("PostgreSQL") val statement = """
             INSERT INTO public.V1_POLL_LIST (
                 SOKNADS_ID,
@@ -58,7 +59,7 @@ internal class PollListStorePostgres(private val ds: DataSource) : PollListStore
         if (effectedRowCount != 1) throw Exception("unexpected effected row count of $effectedRowCount (expected 1) when adding a Vedtak to monitor/poll")
     }
 
-    override fun remove(søknadsID: String) {
+    override fun remove(søknadsID: UUID) {
         @Language("PostgreSQL") val statement = """
             DELETE FROM public.V1_POLL_LIST
             WHERE SOKNADS_ID = ?
@@ -105,7 +106,7 @@ internal class PollListStorePostgres(private val ds: DataSource) : PollListStore
                     ).map {
                         logg.info("DEBUG: here: ${it.toString()}")
                         Poll(
-                            it.string("SOKNADS_ID"),
+                            UUID.fromString(it.string("SOKNADS_ID")),
                             it.string("FNR_BRUKER"),
                             it.string("TKNR"),
                             it.string("SAKSBLOKK"),

@@ -5,6 +5,7 @@ import no.nav.helse.rapids_rivers.JsonMessage
 import no.nav.helse.rapids_rivers.RapidsConnection
 import no.nav.helse.rapids_rivers.River
 import no.nav.hjelpemidler.db.PollListStore
+import java.util.*
 
 private val logg = KotlinLogging.logger {}
 private val sikkerlogg = KotlinLogging.logger("tjenestekall")
@@ -22,7 +23,7 @@ internal class InfotrygdAddToPollVedtakListRiver(
     }
 
     override fun onPacket(packet: JsonMessage, context: RapidsConnection.MessageContext) {
-        val søknadsID = packet["søknadsID"].asText()
+        val søknadsID = UUID.fromString(packet["søknadsID"].asText())
         val fnr = packet["fnr"].asText()
         val tknr = packet["tknr"].asText()
         val saksblokk = packet["saksblokk"].asText()
