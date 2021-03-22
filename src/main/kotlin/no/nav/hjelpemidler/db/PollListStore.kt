@@ -28,7 +28,7 @@ internal class PollListStorePostgres(private val ds: DataSource) : PollListStore
 
     override fun add(søknadsID: String, fnr: String, tknr: String, saksblokk: String, saksnr: String) {
         @Language("PostgreSQL") val statement = """
-            INSERT INTO V1_POLL_LIST (
+            INSERT INTO public.V1_POLL_LIST (
                 SOKNADS_ID,
                 FNR_BRUKER,
                 TKNR,
@@ -57,7 +57,7 @@ internal class PollListStorePostgres(private val ds: DataSource) : PollListStore
 
     override fun remove(søknadsID: String) {
         @Language("PostgreSQL") val statement = """
-            DELETE FROM V1_POLL_LIST
+            DELETE FROM public.V1_POLL_LIST
             WHERE SOKNADS_ID = ?
         """.trimIndent().split("\n").joinToString(" ")
 
@@ -85,7 +85,7 @@ internal class PollListStorePostgres(private val ds: DataSource) : PollListStore
                 SAKSNR,
                 NUMBER_OF_POLLINGS,
                 LAST_POLL
-            FROM V1_POLL_LIST 
+            FROM public.V1_POLL_LIST 
             WHERE (
                 LAST_POLL IS NULL
                 OR
@@ -123,7 +123,7 @@ internal class PollListStorePostgres(private val ds: DataSource) : PollListStore
         }
 
         @Language("PostgreSQL") val statement = """
-            UPDATE V1_POLL_LIST
+            UPDATE public.V1_POLL_LIST
             SET NUMBER_OF_POLLINGS = NUMBER_OF_POLLINGS + 1 
             SET LAST_POLL = now()
             WHERE SOKNADS_ID IN (${søknadsIDs.joinToString(", ")})

@@ -65,8 +65,10 @@ fun main() {
 
     // Run background daemon for polling Infotrygd
     thread(isDaemon = true) {
+        logg.info("DEBUG: Polling starting")
         while (true) {
             // Check every 10s
+            logg.info("DEBUG: sleeping 10s")
             Thread.sleep(1000*10)
 
             // Catch any and all database errors
@@ -74,10 +76,12 @@ fun main() {
 
                 // Get the next batch to check for results:
                 val list = store.getPollingBatch(100)
+                logg.info("DEBUG: fetched list: $list")
                 if (list.isEmpty()) continue
 
                 val innerList: MutableList<Infotrygd.Request> = mutableListOf()
                 for (poll in list) {
+                    logg.info("DEBUG: innerList: poll: $poll")
                     innerList.add(Infotrygd.Request(
                         poll.søknadsID,
                         poll.fnr,
@@ -101,6 +105,9 @@ fun main() {
                     continue
                 }
 
+                logg.info("DEBUG: Infotrygd results:")
+                for (result in results) logg.info("DEBUG: - result: $result")
+
                 // We have successfully batch checked for decisions on Vedtaker, now updating
                 // last polled timestamp and number of pulls for each of the items in the list
                 store.postPollingUpdate(list)
@@ -119,6 +126,7 @@ fun main() {
                         }
                     """.trimIndent())
 
+                    logg.info("DEBUG: Removing from store: $result")
                     store.remove(result.req.id)
                 }
 
