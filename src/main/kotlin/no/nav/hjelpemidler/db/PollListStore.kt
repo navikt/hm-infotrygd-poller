@@ -128,8 +128,9 @@ internal class PollListStorePostgres(private val ds: DataSource) : PollListStore
 
         @Language("PostgreSQL") val statement = """
             UPDATE public.V1_POLL_LIST
-            SET NUMBER_OF_POLLINGS = NUMBER_OF_POLLINGS + 1 
-            SET LAST_POLL = now()
+            SET
+                NUMBER_OF_POLLINGS = NUMBER_OF_POLLINGS + 1, 
+                LAST_POLL = now()
             WHERE SOKNADS_ID IN (${søknadsIDs.joinToString(", ")})
         """.trimIndent().split("\n").joinToString(" ")
 
