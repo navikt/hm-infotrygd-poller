@@ -24,7 +24,7 @@ data class Poll (
     val saksblokk: String,
     val saksnr: String,
     val numberOfPollings: Int,
-    val lastPolled: LocalDateTime,
+    val lastPolled: LocalDateTime?,
 )
 
 internal class PollListStorePostgres(private val ds: DataSource) : PollListStore {
@@ -89,6 +89,11 @@ internal class PollListStorePostgres(private val ds: DataSource) : PollListStore
                 NUMBER_OF_POLLINGS,
                 LAST_POLL
             FROM public.V1_POLL_LIST
+            WHERE (
+                LAST_POLL IS NULL
+                OR
+                LAST_POLL <= NOW() - '60 seconds'::interval   
+            )
             LIMIT $size
         """.trimIndent().split("\n").joinToString(" ")
 
@@ -106,7 +111,7 @@ internal class PollListStorePostgres(private val ds: DataSource) : PollListStore
                             it.string("SAKSBLOKK"),
                             it.string("SAKSNR"),
                             it.int("NUMBER_OF_POLLINGS"),
-                            it.localDateTime("LAST_POLL"),
+                            it.localDateTimeOrNull("LAST_POLL"),
                         )
                     }.asList
                 )
