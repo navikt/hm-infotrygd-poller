@@ -14,6 +14,7 @@ import no.nav.hjelpemidler.db.migrate
 import no.nav.hjelpemidler.db.waitForDB
 import no.nav.hjelpemidler.rivers.InfotrygdAddToPollVedtakListRiver
 import java.net.InetAddress
+import java.time.LocalDate
 import java.time.LocalDateTime
 import java.util.*
 import javax.management.monitor.StringMonitor
@@ -170,5 +171,5 @@ data class VedtakResultat (
     val eventName: String,
     val søknadsID: UUID,
     val resultat: String,
-    val vedtaksDato: LocalDateTime,
+    val vedtaksDato: LocalDate,
 )

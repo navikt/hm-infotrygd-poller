@@ -9,6 +9,7 @@ import java.net.URI
 import java.net.http.HttpClient
 import java.net.http.HttpRequest
 import java.net.http.HttpResponse
+import java.time.LocalDate
 import java.time.LocalDateTime
 import java.util.*
 import kotlin.time.Duration
@@ -85,7 +86,7 @@ class Infotrygd {
     data class Response(
         val req: Request,
         val result: String? = null, // null initialization required for Klaxon deserialization if not mentioned in response (due to null)
-        val vedtaksDate: LocalDateTime? = null, // null initialization required for Klaxon deserialization if not mentioned in response (due to null)
+        val vedtaksDate: LocalDate? = null, // null initialization required for Klaxon deserialization if not mentioned in response (due to null)
         val error: String? = null, // null initialization required for Klaxon deserialization if not mentioned in response (due to null)
         val queryTimeElapsedMs: Double,
     )
