@@ -1,6 +1,7 @@
 package no.nav.hjelpemidler.service.infotrygdproxy
 
 import com.beust.klaxon.Klaxon
+import com.fasterxml.jackson.annotation.JsonFormat
 import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import mu.KotlinLogging
 import no.nav.hjelpemidler.configuration.Configuration
@@ -86,6 +87,7 @@ class Infotrygd {
     data class Response(
         val req: Request,
         val result: String? = null, // null initialization required for Klaxon deserialization if not mentioned in response (due to null)
+        @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd")
         val vedtaksDate: LocalDate? = null, // null initialization required for Klaxon deserialization if not mentioned in response (due to null)
         val error: String? = null, // null initialization required for Klaxon deserialization if not mentioned in response (due to null)
         val queryTimeElapsedMs: Double,
