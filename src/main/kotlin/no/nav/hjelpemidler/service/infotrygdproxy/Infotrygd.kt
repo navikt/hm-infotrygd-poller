@@ -85,7 +85,7 @@ class Infotrygd {
     data class Response(
         val req: Request,
         val result: String? = null, // null initialization required for Klaxon deserialization if not mentioned in response (due to null)
-        val vedtaksDate: String? = null, // null initialization required for Klaxon deserialization if not mentioned in response (due to null)
+        val vedtaksDate: LocalDateTime? = null, // null initialization required for Klaxon deserialization if not mentioned in response (due to null)
         val error: String? = null, // null initialization required for Klaxon deserialization if not mentioned in response (due to null)
         val queryTimeElapsedMs: Double,
     )

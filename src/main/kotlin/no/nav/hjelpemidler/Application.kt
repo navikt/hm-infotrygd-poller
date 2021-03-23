@@ -1,5 +1,6 @@
 package no.nav.hjelpemidler
 
+import com.beust.klaxon.Klaxon
 import mu.KotlinLogging
 import no.nav.hjelpemidler.configuration.Configuration
 import no.nav.helse.rapids_rivers.KafkaConfig
@@ -13,7 +14,9 @@ import no.nav.hjelpemidler.db.migrate
 import no.nav.hjelpemidler.db.waitForDB
 import no.nav.hjelpemidler.rivers.InfotrygdAddToPollVedtakListRiver
 import java.net.InetAddress
+import java.time.LocalDateTime
 import java.util.*
+import javax.management.monitor.StringMonitor
 import kotlin.concurrent.thread
 import kotlin.time.*
 
@@ -66,10 +69,9 @@ fun main() {
 
     // Run background daemon for polling Infotrygd
     thread(isDaemon = true) {
-        logg.info("DEBUG: Polling starting")
+        logg.info("Poller daemon starting")
         while (true) {
             // Check every 10s
-            logg.info("DEBUG: sleeping 10s")
             Thread.sleep(1000*10)
 
             // Catch any and all database errors
@@ -77,12 +79,14 @@ fun main() {
 
                 // Get the next batch to check for results:
                 val list = store.getPollingBatch(100)
-                logg.info("DEBUG: fetched list: $list (list size: ${list.size})")
                 if (list.isEmpty()) continue
+
+                logg.info("Batch processing starting (size: ${list.size})")
+                logg.debug("DEBUG: Batch: $list")
 
                 val innerList: MutableList<Infotrygd.Request> = mutableListOf()
                 for (poll in list) {
-                    logg.info("DEBUG: innerList: poll: $poll")
+                    logg.debug("DEBUG: innerList: poll: $poll")
                     innerList.add(Infotrygd.Request(
                         poll.søknadsID.toString(),
                         poll.fnr,
@@ -101,35 +105,49 @@ fun main() {
                     logg.warn("warn: problem polling Infotrygd, some downtime is expected though (up to 24hrs now and then) so we only warn here: $e")
                     e.printStackTrace()
 
-                    logg.warn("warn: sleeping for 10min due to error, before continuing")
-                    Thread.sleep(1000*60*10)
+                    logg.warn("warn: sleeping for 1min due to error, before continuing")
+                    Thread.sleep(1000*60)
                     continue
                 }
 
-                logg.info("DEBUG: Infotrygd results:")
-                for (result in results) logg.info("DEBUG: - result: $result")
+                logg.debug("DEBUG: Infotrygd results:")
+                for (result in results) logg.debug("DEBUG: - result: $result")
 
                 // We have successfully batch checked for decisions on Vedtaker, now updating
                 // last polled timestamp and number of pulls for each of the items in the list
                 store.postPollingUpdate(list)
 
                 // Check for decisions found:
+                var decisionsMade = 0
+                var avgQueryTimeElapsed_counter = 0.0
+                var avgQueryTimeElapsed_total = 0.0
                 for (result in results) {
+                    if (result.error != null) {
+                        logg.error("error: decision polling failed with error: ${result.error}")
+                        continue
+                    }
+
+                    avgQueryTimeElapsed_counter += result.queryTimeElapsedMs
+                    avgQueryTimeElapsed_total += 1.0
+
                     if (result.result == "") continue // No decision made yet
 
                     // Decision made, lets send it out on the rapid and then delete it from the polling list
-                    rapidApp.publish("""
-                        {
-                            "eventName": "VedtaksResultat",
-                            "søknadsID": "${result.req.id}",
-                            "resultat": "${result.result}",
-                            "vedtaksDate": "${result.vedtaksDate}"
-                        }
-                    """.trimIndent())
+                    decisionsMade++
+                    rapidApp.publish(Klaxon().toJsonString(VedtakResultat(
+                        "VedtaksResultatFraInfotrygd",
+                        UUID.fromString(result.req.id),
+                        result.result!!,
+                        result.vedtaksDate!!,
+                    )))
 
-                    logg.info("DEBUG: Removing from store: $result")
+                    logg.debug("DEBUG: Removing from store: $result")
                     store.remove(UUID.fromString(result.req.id))
+
+                    logg.info("Vedtak decision found for søknadsID=${result.req.id} queryTimeElapsed=${result.queryTimeElapsedMs}ms")
                 }
+
+                logg.info("Processed batch successfully (decisions made / total batch size): $decisionsMade/${list.size}. Avg. time elapsed: ${avgQueryTimeElapsed_counter/avgQueryTimeElapsed_total}ms")
 
             } catch (e: Exception) {
                 logg.error("error: encountered an exception while processing Infotrygd polls: $e")
@@ -147,3 +165,10 @@ fun main() {
     rapidApp.start()
     logg.info("Application ending.")
 }
+
+data class VedtakResultat (
+    val eventName: String,
+    val søknadsID: UUID,
+    val resultat: String,
+    val vedtaksDato: LocalDateTime,
+)
