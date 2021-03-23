@@ -26,6 +26,8 @@ repositories {
 }
 
 dependencies {
+    testImplementation(kotlin("test-junit"))
+
     implementation("com.github.navikt:rapids-and-rivers:$rapid_version")
     implementation("io.github.microutils:kotlin-logging:$logging_version")
     implementation("com.natpryce:konfig:$konfig_version")

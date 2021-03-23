@@ -2,7 +2,14 @@ package no.nav.hjelpemidler.service.infotrygdproxy
 
 import com.beust.klaxon.Klaxon
 import com.fasterxml.jackson.annotation.JsonFormat
+import com.fasterxml.jackson.annotation.JsonProperty
+import com.fasterxml.jackson.databind.ObjectMapper
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize
+import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule
+import com.fasterxml.jackson.datatype.jsr310.deser.LocalDateDeserializer
+import com.fasterxml.jackson.datatype.jsr310.deser.LocalDateTimeDeserializer
 import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
+import com.fasterxml.jackson.module.kotlin.readValue
 import mu.KotlinLogging
 import no.nav.hjelpemidler.configuration.Configuration
 import no.nav.hjelpemidler.service.azure.AzureClient
@@ -28,6 +35,12 @@ private var azToken: String? = null
 
 @ExperimentalTime
 class Infotrygd {
+
+    private val mapper = ObjectMapper()
+
+    init {
+        mapper.registerModule(JavaTimeModule())
+    }
 
     fun batchQueryVedtakResultat(reqs: List<Request>): List<Response> {
         logg.info("DEBUG: batchQueryVedtakResultat: reqs=$reqs")
@@ -68,7 +81,8 @@ class Infotrygd {
 
             val jsonResp: String = httpResponse.body()
             logg.info("DEBUG: received response pre-parsing: $jsonResp")
-            results = Klaxon().parseArray(jsonResp)
+
+            results = mapper.readValue(jsonResp)
         }
 
         logg.info("DEBUG: Response received from infotrygd: $results. Total request time elapsed: ${elapsed.inMilliseconds}")
@@ -77,19 +91,38 @@ class Infotrygd {
     }
 
     data class Request(
+        @JsonProperty("id")
         val id: String,
+
+        @JsonProperty("fnr")
         val fnr: String,
+
+        @JsonProperty("tknr")
         val tknr: String,
+
+        @JsonProperty("saksblokk")
         val saksblokk: String,
+
+        @JsonProperty("saksnr")
         val saksnr: String,
     )
 
     data class Response(
+        @JsonProperty("req")
         val req: Request,
+
+        @JsonProperty("result")
         val result: String? = null, // null initialization required for Klaxon deserialization if not mentioned in response (due to null)
+
         @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd")
+        @JsonDeserialize(using = LocalDateDeserializer::class)
+        @JsonProperty("vedtaksDate")
         val vedtaksDate: LocalDate? = null, // null initialization required for Klaxon deserialization if not mentioned in response (due to null)
+
+        @JsonProperty("error")
         val error: String? = null, // null initialization required for Klaxon deserialization if not mentioned in response (due to null)
+
+        @JsonProperty("queryTimeElapsedMs")
         val queryTimeElapsedMs: Double,
     )
 }
