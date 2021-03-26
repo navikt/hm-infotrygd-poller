@@ -17,18 +17,18 @@ internal class InfotrygdAddToPollVedtakListRiver(
 
     init {
         River(rapidsConnection).apply {
-            this.validate{ it.demandValue("eventName", "InfotrygdAddToPollVedtakList") }
-            this.validate{ it.requireKey("søknadsID", "fnr", "tknr", "saksblokk", "saksnr") }
+            this.validate{ it.demandValue("eventName", "hm-InfotrygdAddToPollVedtakList") }
+            this.validate{ it.requireKey("søknadId", "fnrBruker", "trygdekontorNr", "saksblokk", "saksnr") }
         }.register(this)
     }
 
     override fun onPacket(packet: JsonMessage, context: RapidsConnection.MessageContext) {
-        val søknadsID = UUID.fromString(packet["søknadsID"].asText())
-        val fnr = packet["fnr"].asText()
-        val tknr = packet["tknr"].asText()
+        val søknadId = UUID.fromString(packet["søknadId"].asText())
+        val fnrBruker = packet["fnrBruker"].asText()
+        val trygdekontorNr = packet["trygdekontorNr"].asText()
         val saksblokk = packet["saksblokk"].asText()
         val saksnr = packet["saksnr"].asText()
 
-        store.add(søknadsID, fnr, tknr, saksblokk, saksnr)
+        store.add(søknadId, fnrBruker, trygdekontorNr, saksblokk, saksnr)
     }
 }

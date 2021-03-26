@@ -12,16 +12,16 @@ import javax.sql.DataSource
 private val logg = KotlinLogging.logger {}
 
 internal interface PollListStore {
-    fun add(søknadsID: UUID, fnr: String, tknr: String, saksblokk: String, saksnr: String)
-    fun remove(søknadsID: UUID)
+    fun add(søknadId: UUID, fnrBruker: String, trygdekontorNr: String, saksblokk: String, saksnr: String)
+    fun remove(søknadId: UUID)
     fun getPollingBatch(size: Int): List<Poll>
     fun postPollingUpdate(list: List<Poll>)
 }
 
 data class Poll (
-    val søknadsID: UUID,
-    val fnr: String,
-    val tknr: String,
+    val søknadID: UUID,
+    val fnrBruker: String,
+    val trygdekontorNr: String,
     val saksblokk: String,
     val saksnr: String,
     val numberOfPollings: Int,
@@ -30,7 +30,7 @@ data class Poll (
 
 internal class PollListStorePostgres(private val ds: DataSource) : PollListStore {
 
-    override fun add(søknadsID: UUID, fnr: String, tknr: String, saksblokk: String, saksnr: String) {
+    override fun add(søknadId: UUID, fnrBruker: String, trygdekontorNr: String, saksblokk: String, saksnr: String) {
         @Language("PostgreSQL") val statement = """
             INSERT INTO public.V1_POLL_LIST (
                 SOKNADS_ID,
@@ -46,9 +46,9 @@ internal class PollListStorePostgres(private val ds: DataSource) : PollListStore
                 session.run(
                     queryOf(
                         statement,
-                        søknadsID,
-                        fnr,
-                        tknr,
+                        søknadId,
+                        fnrBruker,
+                        trygdekontorNr,
                         saksblokk,
                         saksnr,
                     ).asUpdate
@@ -59,7 +59,7 @@ internal class PollListStorePostgres(private val ds: DataSource) : PollListStore
         if (effectedRowCount != 1) throw Exception("unexpected effected row count of $effectedRowCount (expected 1) when adding a Vedtak to monitor/poll")
     }
 
-    override fun remove(søknadsID: UUID) {
+    override fun remove(søknadId: UUID) {
         @Language("PostgreSQL") val statement = """
             DELETE FROM public.V1_POLL_LIST
             WHERE SOKNADS_ID = ?
@@ -70,7 +70,7 @@ internal class PollListStorePostgres(private val ds: DataSource) : PollListStore
                 session.run(
                     queryOf(
                         statement,
-                        søknadsID,
+                        søknadId,
                     ).asExecute
                 )
             }
@@ -122,7 +122,7 @@ internal class PollListStorePostgres(private val ds: DataSource) : PollListStore
         // Update NUMBER_OF_POLLINGS and LAST_POLL columns for the rows we picked out to poll:
         val søknadsIDs: MutableList<String> = mutableListOf()
         for (poll in list) {
-            søknadsIDs.add("'${poll.søknadsID}'")
+            søknadsIDs.add("'${poll.søknadID}'")
         }
 
         @Language("PostgreSQL") val statement = """

@@ -1,6 +1,7 @@
 package no.nav.hjelpemidler
 
-import com.beust.klaxon.Klaxon
+import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule
+import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import mu.KotlinLogging
 import no.nav.hjelpemidler.configuration.Configuration
 import no.nav.helse.rapids_rivers.KafkaConfig
@@ -15,14 +16,14 @@ import no.nav.hjelpemidler.db.waitForDB
 import no.nav.hjelpemidler.rivers.InfotrygdAddToPollVedtakListRiver
 import java.net.InetAddress
 import java.time.LocalDate
-import java.time.LocalDateTime
 import java.util.*
-import javax.management.monitor.StringMonitor
 import kotlin.concurrent.thread
 import kotlin.time.*
 
 private val logg = KotlinLogging.logger {}
 // private val sikkerlogg = KotlinLogging.logger("tjenestekall")
+
+private val mapper = jacksonObjectMapper().registerModule(JavaTimeModule())
 
 @ExperimentalTime
 fun main() {
@@ -89,9 +90,9 @@ fun main() {
                 for (poll in list) {
                     logg.debug("DEBUG: innerList: poll: $poll")
                     innerList.add(Infotrygd.Request(
-                        poll.søknadsID.toString(),
-                        poll.fnr,
-                        poll.tknr,
+                        poll.søknadID.toString(),
+                        poll.fnrBruker,
+                        poll.trygdekontorNr,
                         poll.saksblokk,
                         poll.saksnr,
                     ))
@@ -131,14 +132,14 @@ fun main() {
                     avgQueryTimeElapsed_counter += result.queryTimeElapsedMs
                     avgQueryTimeElapsed_total += 1.0
 
-                    if (result.result == "") continue // No decision made yet
+                    if (result.vedtaksResult == "") continue // No decision made yet
 
                     // Decision made, lets send it out on the rapid and then delete it from the polling list
                     decisionsMade++
-                    rapidApp.publish(Klaxon().toJsonString(VedtakResultat(
-                        "VedtaksResultatFraInfotrygd",
+                    rapidApp.publish(mapper.writeValueAsString(VedtakResultat(
+                        "hm-VedtaksResultatFraInfotrygd",
                         UUID.fromString(result.req.id),
-                        result.result!!,
+                        result.vedtaksResult!!,
                         result.vedtaksDate!!,
                     )))
 
@@ -169,7 +170,7 @@ fun main() {
 
 data class VedtakResultat (
     val eventName: String,
-    val søknadsID: UUID,
-    val resultat: String,
+    val søknadID: UUID,
+    val vedtaksResultat: String,
     val vedtaksDato: LocalDate,
 )

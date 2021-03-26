@@ -27,7 +27,7 @@ import kotlin.time.measureTime
 private val logg = KotlinLogging.logger {}
 private val sikkerlogg = KotlinLogging.logger("tjenestekall")
 
-private val mapper = jacksonObjectMapper()
+private val mapper = jacksonObjectMapper().registerModule(JavaTimeModule())
 
 private val azClient = AzureClient(Configuration.azureAD["AZURE_TENANT_BASEURL"]!! + "/" + Configuration.azureAD["AZURE_APP_TENANT_ID"]!!, Configuration.azureAD["AZURE_APP_CLIENT_ID"]!!, Configuration.azureAD["AZURE_APP_CLIENT_SECRET"]!!)
 private var azTokenTimeout: LocalDateTime? = null
@@ -111,11 +111,10 @@ class Infotrygd {
         @JsonProperty("req")
         val req: Request,
 
-        @JsonProperty("result")
-        val result: String? = null, // null initialization required for Klaxon deserialization if not mentioned in response (due to null)
+        @JsonProperty("vedtaksResult")
+        val vedtaksResult: String? = null, // null initialization required for Klaxon deserialization if not mentioned in response (due to null)
 
-        @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd")
-        @JsonDeserialize(using = LocalDateDeserializer::class)
+        @JsonFormat(shape = JsonFormat.Shape.STRING)
         @JsonProperty("vedtaksDate")
         val vedtaksDate: LocalDate? = null, // null initialization required for Klaxon deserialization if not mentioned in response (due to null)
 
@@ -123,6 +122,7 @@ class Infotrygd {
         val error: String? = null, // null initialization required for Klaxon deserialization if not mentioned in response (due to null)
 
         @JsonProperty("queryTimeElapsedMs")
+        @JsonDeserialize
         val queryTimeElapsedMs: Double,
     )
 }
