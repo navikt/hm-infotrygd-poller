@@ -128,6 +128,27 @@ fun main() {
                 var avgQueryTimeElapsed_counter = 0.0
                 var avgQueryTimeElapsed_total = 0.0
                 for (result in results) {
+                    if (Configuration.application["APP_PROFILE"] == "dev") {
+                        // FIXME: Mock out answer due to dev having a static database
+                        avgQueryTimeElapsed_counter += result.queryTimeElapsedMs
+                        avgQueryTimeElapsed_total += 1.0
+
+                        decisionsMade++
+                        rapidApp.publish(mapper.writeValueAsString(VedtakResultat(
+                            "hm-VedtaksResultatFraInfotrygd",
+                            UUID.fromString(result.req.id),
+                            "I",
+                            LocalDate.now(),
+                        )))
+
+                        logg.debug("DEBUG: Removing from store: $result")
+                        store.remove(UUID.fromString(result.req.id))
+
+                        logg.info("Vedtak decision found for søknadsID=${result.req.id} queryTimeElapsed=${result.queryTimeElapsedMs}ms")
+
+                        continue
+                    }
+
                     if (result.error != null) {
                         logg.error("error: decision polling failed with error: ${result.error}")
                         continue
