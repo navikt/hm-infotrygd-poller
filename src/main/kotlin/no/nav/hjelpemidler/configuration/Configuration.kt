@@ -50,7 +50,6 @@ internal object Configuration {
 
             "kafka.reset.policy" to "earliest",
             "application.httpPort" to "8082",
-            "application.profile" to "LOCAL",
             "KAFKA_TRUSTSTORE_PATH" to "",
             "KAFKA_CREDSTORE_PASSWORD" to "",
             "KAFKA_KEYSTORE_PATH" to "",

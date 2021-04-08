@@ -91,7 +91,7 @@ internal class PollListStorePostgres(private val ds: DataSource) : PollListStore
             WHERE (
                 LAST_POLL IS NULL
                 OR
-                LAST_POLL <= NOW() - '60 seconds'::interval   
+                LAST_POLL <= NOW() - '60 seconds'::interval
             )
             LIMIT $size
         """.trimIndent().split("\n").joinToString(" ")
@@ -128,7 +128,7 @@ internal class PollListStorePostgres(private val ds: DataSource) : PollListStore
         @Language("PostgreSQL") val statement = """
             UPDATE public.V1_POLL_LIST
             SET
-                NUMBER_OF_POLLINGS = NUMBER_OF_POLLINGS + 1, 
+                NUMBER_OF_POLLINGS = NUMBER_OF_POLLINGS + 1,
                 LAST_POLL = now()
             WHERE SOKNADS_ID IN (${søknadsIDs.joinToString(", ")})
         """.trimIndent().split("\n").joinToString(" ")

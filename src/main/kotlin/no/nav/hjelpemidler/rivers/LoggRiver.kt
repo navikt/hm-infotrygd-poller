@@ -4,6 +4,7 @@ import mu.KotlinLogging
 import no.nav.helse.rapids_rivers.JsonMessage
 import no.nav.helse.rapids_rivers.RapidsConnection
 import no.nav.helse.rapids_rivers.River
+import no.nav.hjelpemidler.configuration.Configuration
 
 private val logg = KotlinLogging.logger {}
 private val sikkerlogg = KotlinLogging.logger("tjenestekall")
@@ -18,7 +19,9 @@ internal class LoggRiver(
     }
 
     override fun onPacket(packet: JsonMessage, context: RapidsConnection.MessageContext) {
-        val rawJson = packet.toJson()
-        sikkerlogg.info("DEBUG: Mottok pakke med Json: $rawJson")
+        if (Configuration.application["APP_PROFILE"]!! != "prod") {
+            val rawJson = packet.toJson()
+            sikkerlogg.info("DEBUG: Mottok pakke med Json: $rawJson")
+        }
     }
 }
