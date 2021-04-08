@@ -3,9 +3,13 @@ package no.nav.hjelpemidler.service.infotrygdproxy
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule
 import com.fasterxml.jackson.module.kotlin.readValue
+import no.nav.hjelpemidler.VedtakResultat
 import java.time.LocalDate
+import java.time.format.DateTimeFormatter
+import java.util.*
 import kotlin.test.Test
 import kotlin.test.assertEquals
+import kotlin.test.assertTrue
 import kotlin.time.ExperimentalTime
 
 internal class InfotrygdServiceTest {
@@ -41,6 +45,27 @@ internal class InfotrygdServiceTest {
         assertEquals("IM", result.vedtaksResult)
         assertEquals(LocalDate.of(2021, 3, 23), result.vedtaksDate)
         assertEquals(1.480892, result.queryTimeElapsedMs)
+    }
+
+    @ExperimentalTime
+    @Test
+    fun `Marshal LocalDate with jackson`() {
+        val mapper = ObjectMapper().registerModule(JavaTimeModule())
+
+        val expectedDate = LocalDate.now()
+        val rawJson = mapper.writeValueAsString(VedtakResultat(
+            "abc",
+            UUID.randomUUID(),
+            "I",
+            expectedDate,
+        ))
+
+        val contains = expectedDate.format(DateTimeFormatter.ISO_DATE)
+
+        //println(rawJson)
+        //println(contains)
+
+        assertTrue(rawJson.contains(contains))
     }
 
 }

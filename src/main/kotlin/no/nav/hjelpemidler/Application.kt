@@ -1,5 +1,7 @@
 package no.nav.hjelpemidler
 
+import com.fasterxml.jackson.annotation.JsonFormat
+import com.fasterxml.jackson.annotation.JsonProperty
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule
 import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import io.ktor.application.*
@@ -194,8 +196,13 @@ fun main() {
 }
 
 data class VedtakResultat (
+    @JsonProperty("eventName")
     val eventName: String,
+    @JsonProperty("søknadID")
     val søknadID: UUID,
+    @JsonProperty("vedtaksResultat")
     val vedtaksResultat: String,
+    @JsonFormat(shape = JsonFormat.Shape.STRING)
+    @JsonProperty("vedtaksDato")
     val vedtaksDato: LocalDate,
 )
