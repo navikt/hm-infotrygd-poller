@@ -18,7 +18,9 @@ import no.nav.hjelpemidler.db.waitForDB
 import no.nav.hjelpemidler.metrics.SensuMetrics
 import no.nav.hjelpemidler.rivers.InfotrygdAddToPollVedtakListRiver
 import java.net.InetAddress
+import java.time.Duration
 import java.time.LocalDate
+import java.time.LocalDateTime
 import java.util.*
 import kotlin.concurrent.thread
 import kotlin.time.*
@@ -75,6 +77,8 @@ fun main() {
     // Run background daemon for polling Infotrygd
     thread(isDaemon = true) {
         logg.info("Poller daemon starting")
+
+        var firstNoticedInfotrygdWasDown: LocalDateTime? = null
         while (true) {
             // Check every 10s
             Thread.sleep(1000*10)
@@ -93,7 +97,7 @@ fun main() {
                 SensuMetrics().batchSize(list.size)
 
                 logg.info("Batch processing starting (size: ${list.size})")
-                logg.debug("DEBUG: Batch: $list")
+                if (Configuration.application["APP_PROFILE"] != "prod") logg.debug("DEBUG: Batch: $list")
 
                 val innerList: MutableList<Infotrygd.Request> = mutableListOf()
                 for (poll in list) {
@@ -112,20 +116,28 @@ fun main() {
                 // Catch any Infotrygd related errors specially here since we expect lots of downtime
                 try {
                     results = Infotrygd().batchQueryVedtakResultat(innerList)
+                    if (firstNoticedInfotrygdWasDown != null) {
+                        firstNoticedInfotrygdWasDown = null
+                        SensuMetrics().infotrygdDowntime(0.0)
+                    }
                 } catch(e: Exception) {
                     logg.warn("warn: problem polling Infotrygd, some downtime is expected though (up to 24hrs now and then) so we only warn here: $e")
                     e.printStackTrace()
 
-                    // TODO: Grafana or slack warning about downtime. esp. if it is down for a long time.
+                    // TODO: Set up warnings to slack when we are down!
+                    if (firstNoticedInfotrygdWasDown == null) firstNoticedInfotrygdWasDown = LocalDateTime.now()
+                    val elapsed = Duration.between(firstNoticedInfotrygdWasDown, LocalDateTime.now())
+                    SensuMetrics().infotrygdDowntime((elapsed.toSeconds()).toDouble()/60.0)
 
                     logg.warn("warn: sleeping for 1min due to error, before continuing")
                     Thread.sleep(1000*60)
                     continue
                 }
 
-                // FIXME: Do not log in prod
-                logg.debug("DEBUG: Infotrygd results:")
-                for (result in results) logg.debug("DEBUG: - result: $result")
+                if (Configuration.application["APP_PROFILE"] != "prod") {
+                    logg.debug("DEBUG: Infotrygd results:")
+                    for (result in results) logg.debug("DEBUG: - result: $result")
+                }
 
                 // We have successfully batch checked for decisions on Vedtaker, now updating
                 // last polled timestamp and number of pulls for each of the items in the list
@@ -137,7 +149,7 @@ fun main() {
                 var avgQueryTimeElapsed_total = 0.0
                 for (result in results) {
                     if (Configuration.application["APP_PROFILE"] == "dev") {
-                        // FIXME: Mock out answer due to dev having a static database
+                        // NOTE: Mocking out answer due to dev having a static database
                         avgQueryTimeElapsed_counter += result.queryTimeElapsedMs
                         avgQueryTimeElapsed_total += 1.0
 
@@ -196,9 +208,7 @@ fun main() {
                         throw e
                     }
 
-                    logg.debug("DEBUG: Removing from store: $result")
                     store.remove(UUID.fromString(result.req.id))
-
                     logg.info("Vedtak decision found for søknadsID=${result.req.id} queryTimeElapsed=${result.queryTimeElapsedMs}ms")
                 }
 

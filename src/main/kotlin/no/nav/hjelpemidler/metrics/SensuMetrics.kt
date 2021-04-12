@@ -41,6 +41,10 @@ class SensuMetrics {
         registerPoint(AVG_QUERY_TIME, mapOf("avg_time" to qt), emptyMap())
     }
 
+    fun infotrygdDowntime(downtime: Double) {
+        registerPoint(INFOTRYGD_DOWNTIME, mapOf("down_time" to downtime), emptyMap())
+    }
+
     private fun registerPoint(measurement: String, fields: Map<String, Any>, tags: Map<String, String>) {
         log.info("Posting point to Influx: measurment {} fields {} tags {} ", measurement, fields, tags)
         val point = Point.measurement(measurement)
@@ -93,5 +97,6 @@ class SensuMetrics {
         const val POLL_LIST_SIZE = "$POLLER.poll.list.size"
         const val BATCH_SIZE = "$POLLER.batch.size"
         const val AVG_QUERY_TIME = "$POLLER.avg.query.time.test"
+        const val INFOTRYGD_DOWNTIME = "$POLLER.infotrygd.downtime"
     }
 }
