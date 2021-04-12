@@ -14,6 +14,7 @@ private val logg = KotlinLogging.logger {}
 internal interface PollListStore {
     fun add(søknadId: UUID, fnrBruker: String, trygdekontorNr: String, saksblokk: String, saksnr: String)
     fun remove(søknadId: UUID)
+    fun getPollListSize(): Int?
     fun getPollingBatch(size: Int): List<Poll>
     fun postPollingUpdate(list: List<Poll>)
 }
@@ -77,6 +78,24 @@ internal class PollListStorePostgres(private val ds: DataSource) : PollListStore
         }
     }
 
+    override fun getPollListSize(): Int? {
+        @Language("PostgreSQL") val statement = """
+            SELECT count(*) AS count FROM public.V1_POLL_LIST
+        """.trimIndent().split("\n").joinToString(" ")
+
+        return time("getPollListSize") {
+            using(sessionOf(ds)) { session ->
+                session.run(
+                    queryOf(
+                        statement,
+                    ).map {
+                        it.int("count")
+                    }.asSingle
+                )
+            }
+        }
+    }
+
     override fun getPollingBatch(size: Int): List<Poll> {
         @Language("PostgreSQL") val statement = """
             SELECT
@@ -91,8 +110,9 @@ internal class PollListStorePostgres(private val ds: DataSource) : PollListStore
             WHERE (
                 LAST_POLL IS NULL
                 OR
-                LAST_POLL <= NOW() - '60 seconds'::interval
+                LAST_POLL <= NOW() - '60 minutes'::interval
             )
+            ORDER BY LAST_POLL ASC NULLS FIRST
             LIMIT $size
         """.trimIndent().split("\n").joinToString(" ")
 

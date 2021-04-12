@@ -29,11 +29,13 @@ class SensuMetrics {
         registerPoint(MELDING_TIL_RAPID_FEILET, mapOf("counter" to 1L), emptyMap())
     }
 
-    fun test() {
-        println("writing to sensu")
-        registerPoint("testing", mapOf("counter" to 1L), emptyMap())
+    fun pollListSize(size: Int) {
+        registerPoint(POLL_LIST_SIZE, mapOf("gauge" to size), emptyMap())
     }
 
+    fun avgQueryTimeMS(qt: Double) {
+        registerPoint(AVG_QUERY_TIME, mapOf("avg_time" to qt), emptyMap())
+    }
 
     private fun registerPoint(measurement: String, fields: Map<String, Any>, tags: Map<String, String>) {
         log.info("Posting point to Influx: measurment {} fields {} tags {} ", measurement, fields, tags)
@@ -81,8 +83,10 @@ class SensuMetrics {
             "namespace" to (Configuration.application["NAIS_NAMESPACE"] ?: "teamdigihot")
         )
 
-        private const val SOKNADER = "hm-infotrygd-poller"
-        const val MELDING_TIL_RAPID_SUKSESS = "$SOKNADER.soknadmottatt.rapid.suksess"
-        const val MELDING_TIL_RAPID_FEILET = "$SOKNADER.soknadmottatt.rapid.feilet"
+        private const val POLLER = "hm-infotrygd-poller"
+        const val MELDING_TIL_RAPID_SUKSESS = "$POLLER.vedtaksresultat.rapid.suksess"
+        const val MELDING_TIL_RAPID_FEILET = "$POLLER.vedtaksresultat.rapid.feilet"
+        const val POLL_LIST_SIZE = "$POLLER.poll.list.size"
+        const val AVG_QUERY_TIME = "$POLLER.avg.query.time.test"
     }
 }

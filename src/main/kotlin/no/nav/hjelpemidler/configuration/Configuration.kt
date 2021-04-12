@@ -58,7 +58,7 @@ internal object Configuration {
             "kafka.aiven.topic" to "teamdigihot.hm-soknadsbehandling-v1",
 
             "application.profile" to "local",
-            "SENSU_URL" to "https://test",
+            "SENSU_URL" to "http://localhost:8456/sensu", // hm-soknad-api WireMock endpoint
 
             "AZURE_TENANT_BASEURL" to "http://localhost:9099",
             "AZURE_APP_TENANT_ID" to "123",

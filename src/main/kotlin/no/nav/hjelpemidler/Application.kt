@@ -4,10 +4,6 @@ import com.fasterxml.jackson.annotation.JsonFormat
 import com.fasterxml.jackson.annotation.JsonProperty
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule
 import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
-import io.ktor.application.*
-import io.ktor.http.*
-import io.ktor.response.*
-import io.ktor.routing.*
 import mu.KotlinLogging
 import no.nav.hjelpemidler.configuration.Configuration
 import no.nav.helse.rapids_rivers.KafkaConfig
@@ -19,6 +15,7 @@ import no.nav.hjelpemidler.service.infotrygdproxy.Infotrygd
 import no.nav.hjelpemidler.db.dataSource
 import no.nav.hjelpemidler.db.migrate
 import no.nav.hjelpemidler.db.waitForDB
+import no.nav.hjelpemidler.metrics.SensuMetrics
 import no.nav.hjelpemidler.rivers.InfotrygdAddToPollVedtakListRiver
 import java.net.InetAddress
 import java.time.LocalDate
@@ -44,7 +41,7 @@ fun main() {
     val store = PollListStorePostgres(dataSource())
 
     // Define our rapid and rivers app
-    var rapidApp: RapidsConnection? = null
+    var rapidApp: RapidsConnection?
     rapidApp = RapidApplication.Builder(
         RapidApplication.RapidApplicationConfig(
             Configuration.rapidConfig["RAPID_APP_NAME"],
@@ -84,6 +81,9 @@ fun main() {
 
             // Catch any and all database errors
             try {
+                // Report total size of poll list to sensu
+                val pollListSize = store.getPollListSize()
+                if (pollListSize != null) SensuMetrics().pollListSize(pollListSize)
 
                 // Get the next batch to check for results:
                 val list = store.getPollingBatch(100)
@@ -104,7 +104,7 @@ fun main() {
                     ))
                 }
 
-                var results: List<Infotrygd.Response>? = null
+                var results: List<Infotrygd.Response>?
 
                 // Catch any Infotrygd related errors specially here since we expect lots of downtime
                 try {
@@ -113,11 +113,14 @@ fun main() {
                     logg.warn("warn: problem polling Infotrygd, some downtime is expected though (up to 24hrs now and then) so we only warn here: $e")
                     e.printStackTrace()
 
+                    // TODO: Grafana or slack warning about downtime. esp. if it is down for a long time.
+
                     logg.warn("warn: sleeping for 1min due to error, before continuing")
                     Thread.sleep(1000*60)
                     continue
                 }
 
+                // FIXME: Do not log in prod
                 logg.debug("DEBUG: Infotrygd results:")
                 for (result in results) logg.debug("DEBUG: - result: $result")
 
@@ -163,12 +166,24 @@ fun main() {
 
                     // Decision made, lets send it out on the rapid and then delete it from the polling list
                     decisionsMade++
-                    rapidApp.publish(mapper.writeValueAsString(VedtakResultat(
-                        "hm-VedtaksResultatFraInfotrygd",
-                        UUID.fromString(result.req.id),
-                        result.vedtaksResult!!,
-                        result.vedtaksDate!!,
-                    )))
+                    try {
+                        rapidApp.publish(
+                            mapper.writeValueAsString(
+                                VedtakResultat(
+                                    "hm-VedtaksResultatFraInfotrygd",
+                                    UUID.fromString(result.req.id),
+                                    result.vedtaksResult!!,
+                                    result.vedtaksDate!!,
+                                )
+                            )
+                        )
+                        SensuMetrics().meldingTilRapidSuksess()
+                    } catch (e: Exception) {
+                        logg.error("error: sending hm-VedtaksResultatFraInfotrygd to rapid failed: $e")
+                        e.printStackTrace()
+                        SensuMetrics().meldingTilRapidFeilet()
+                        throw e
+                    }
 
                     logg.debug("DEBUG: Removing from store: $result")
                     store.remove(UUID.fromString(result.req.id))
@@ -176,7 +191,9 @@ fun main() {
                     logg.info("Vedtak decision found for søknadsID=${result.req.id} queryTimeElapsed=${result.queryTimeElapsedMs}ms")
                 }
 
-                logg.info("Processed batch successfully (decisions made / total batch size): $decisionsMade/${list.size}. Avg. time elapsed: ${avgQueryTimeElapsed_counter/avgQueryTimeElapsed_total}ms")
+                val avgQueryTime = avgQueryTimeElapsed_counter/avgQueryTimeElapsed_total
+                logg.info("Processed batch successfully (decisions made / total batch size): $decisionsMade/${list.size}. Avg. time elapsed: $avgQueryTime")
+                SensuMetrics().avgQueryTimeMS(avgQueryTime)
 
             } catch (e: Exception) {
                 logg.error("error: encountered an exception while processing Infotrygd polls: $e")
