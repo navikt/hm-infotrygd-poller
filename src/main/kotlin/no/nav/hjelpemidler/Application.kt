@@ -85,13 +85,13 @@ fun main() {
 
             // Catch any and all database errors
             try {
-                // Report total size of poll list to sensu
-                val pollListSize = store.getPollListSize()
-                if (pollListSize != null) SensuMetrics().pollListSize(pollListSize)
-
                 // Get the next batch to check for results:
                 val list = store.getPollingBatch(100)
                 if (list.isEmpty()) continue
+
+                // Report total size of poll list to sensu
+                val pollListSize = store.getPollListSize()
+                if (pollListSize != null) SensuMetrics().pollListSize(pollListSize)
 
                 // Report batch size we are polling to sensu
                 SensuMetrics().batchSize(list.size)
