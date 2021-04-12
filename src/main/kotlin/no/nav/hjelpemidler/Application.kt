@@ -216,6 +216,10 @@ fun main() {
                 logg.info("Processed batch successfully (decisions made / total batch size): $decisionsMade/${list.size}. Avg. time elapsed: $avgQueryTime")
                 SensuMetrics().avgQueryTimeMS(avgQueryTime)
 
+                // Report total size of poll list to sensu after results have come in
+                val pollListSize2 = store.getPollListSize()
+                if (pollListSize2 != null && pollListSize2 != pollListSize) SensuMetrics().pollListSize(pollListSize2)
+
             } catch (e: Exception) {
                 logg.error("error: encountered an exception while processing Infotrygd polls: $e")
                 e.printStackTrace()
