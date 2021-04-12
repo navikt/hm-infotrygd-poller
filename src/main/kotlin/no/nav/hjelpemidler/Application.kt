@@ -89,6 +89,9 @@ fun main() {
                 val list = store.getPollingBatch(100)
                 if (list.isEmpty()) continue
 
+                // Report batch size we are polling to sensu
+                SensuMetrics().batchSize(list.size)
+
                 logg.info("Batch processing starting (size: ${list.size})")
                 logg.debug("DEBUG: Batch: $list")
 

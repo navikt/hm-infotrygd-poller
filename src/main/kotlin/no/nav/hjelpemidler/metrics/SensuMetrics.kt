@@ -33,6 +33,10 @@ class SensuMetrics {
         registerPoint(POLL_LIST_SIZE, mapOf("gauge" to size), emptyMap())
     }
 
+    fun batchSize(size: Int) {
+        registerPoint(BATCH_SIZE, mapOf("gauge" to size), emptyMap())
+    }
+
     fun avgQueryTimeMS(qt: Double) {
         registerPoint(AVG_QUERY_TIME, mapOf("avg_time" to qt), emptyMap())
     }
@@ -87,6 +91,7 @@ class SensuMetrics {
         const val MELDING_TIL_RAPID_SUKSESS = "$POLLER.vedtaksresultat.rapid.suksess"
         const val MELDING_TIL_RAPID_FEILET = "$POLLER.vedtaksresultat.rapid.feilet"
         const val POLL_LIST_SIZE = "$POLLER.poll.list.size"
+        const val BATCH_SIZE = "$POLLER.batch.size"
         const val AVG_QUERY_TIME = "$POLLER.avg.query.time.test"
     }
 }
