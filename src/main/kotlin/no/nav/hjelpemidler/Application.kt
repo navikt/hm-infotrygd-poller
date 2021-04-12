@@ -139,12 +139,20 @@ fun main() {
                         avgQueryTimeElapsed_total += 1.0
 
                         decisionsMade++
-                        rapidApp.publish(mapper.writeValueAsString(VedtakResultat(
-                            "hm-VedtaksResultatFraInfotrygd",
-                            UUID.fromString(result.req.id),
-                            "I",
-                            LocalDate.now(),
-                        )))
+                        try {
+                            rapidApp.publish(mapper.writeValueAsString(VedtakResultat(
+                                "hm-VedtaksResultatFraInfotrygd",
+                                UUID.fromString(result.req.id),
+                                "I",
+                                LocalDate.now(),
+                            )))
+                            SensuMetrics().meldingTilRapidSuksess()
+                        } catch (e: Exception) {
+                            logg.error("error: sending hm-VedtaksResultatFraInfotrygd to rapid failed: $e")
+                            e.printStackTrace()
+                            SensuMetrics().meldingTilRapidFeilet()
+                            throw e
+                        }
 
                         logg.debug("DEBUG: Removing from store: $result")
                         store.remove(UUID.fromString(result.req.id))
