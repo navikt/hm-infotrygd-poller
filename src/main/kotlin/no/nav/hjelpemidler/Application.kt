@@ -214,7 +214,9 @@ fun main() {
 
                 val avgQueryTime = avgQueryTimeElapsed_counter/avgQueryTimeElapsed_total
                 logg.info("Processed batch successfully (decisions made / total batch size): $decisionsMade/${list.size}. Avg. time elapsed: $avgQueryTime")
+
                 SensuMetrics().avgQueryTimeMS(avgQueryTime)
+                SensuMetrics().decisionsMadeInPolling(decisionsMade.toLong())
 
                 // Report total size of poll list to sensu after results have come in
                 val pollListSize2 = store.getPollListSize()

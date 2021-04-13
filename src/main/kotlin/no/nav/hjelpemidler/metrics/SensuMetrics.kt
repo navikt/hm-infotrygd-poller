@@ -41,6 +41,10 @@ class SensuMetrics {
         registerPoint(AVG_QUERY_TIME, mapOf("avg_time" to qt), emptyMap())
     }
 
+    fun decisionsMadeInPolling(decisionsMade: Long) {
+        registerPoint(POLL_DECISIONSMADE, mapOf("gauge" to decisionsMade), emptyMap())
+    }
+
     fun infotrygdDowntime(downtime: Double) {
         registerPoint(INFOTRYGD_DOWNTIME, mapOf("down_time" to downtime), emptyMap())
     }
@@ -97,6 +101,7 @@ class SensuMetrics {
         const val POLL_LIST_SIZE = "$POLLER.poll.list.size"
         const val BATCH_SIZE = "$POLLER.batch.size"
         const val AVG_QUERY_TIME = "$POLLER.avg.query.time.test"
+        const val POLL_DECISIONSMADE = "$POLLER.poll.decisionsmade"
         const val INFOTRYGD_DOWNTIME = "$POLLER.infotrygd.downtime"
     }
 }
