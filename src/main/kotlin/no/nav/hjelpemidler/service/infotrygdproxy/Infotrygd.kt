@@ -43,7 +43,7 @@ class Infotrygd {
     }
 
     fun batchQueryVedtakResultat(reqs: List<Request>): List<Response> {
-        logg.info("DEBUG: batchQueryVedtakResultat: reqs=$reqs")
+        if (Configuration.application["APP_PROFILE"] != "prod") logg.info("DEBUG: batchQueryVedtakResultat: reqs=$reqs")
 
         var results: List<Response>? = null
         val elapsed: Duration = measureTime {
@@ -59,7 +59,7 @@ class Infotrygd {
             val authToken = azToken!!
             val url = Configuration.infotrygdProxy["INFOTRYGDPROXY_URL"]!! + "/vedtak-resultat"
 
-            logg.info("DEBUG: Making proxy request with url: $url and json: $json. Token: [MASKED]")
+            if (Configuration.application["APP_PROFILE"] != "prod") logg.info("DEBUG: Making proxy request with url: $url and json: $json. Token: [MASKED]")
 
             // Execute request towards graphql API server
             val client: HttpClient = HttpClient.newHttpClient()
@@ -80,12 +80,12 @@ class Infotrygd {
             }
 
             val jsonResp: String = httpResponse.body()
-            logg.info("DEBUG: received response pre-parsing: $jsonResp")
+            if (Configuration.application["APP_PROFILE"] != "prod") logg.info("DEBUG: received response pre-parsing: $jsonResp")
 
             results = mapper.readValue(jsonResp)
         }
 
-        logg.info("DEBUG: Response received from infotrygd: $results. Total request time elapsed: ${elapsed.inMilliseconds}")
+        if (Configuration.application["APP_PROFILE"] != "prod") logg.info("DEBUG: Response received from infotrygd: $results. Total request time elapsed: ${elapsed.inMilliseconds}")
 
         return results!!.toList()
     }
