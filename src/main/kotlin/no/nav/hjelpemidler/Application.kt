@@ -184,7 +184,10 @@ fun main() {
                     avgQueryTimeElapsed_counter += result.queryTimeElapsedMs
                     avgQueryTimeElapsed_total += 1.0
 
-                    if (result.vedtaksResult == "") continue // No decision made yet
+                    if (result.vedtaksResult == "") { // No decision made yet
+                        logg.info("DEBUG: ROW EXISTS IN DATABASE BUT NO Vedtak DONE: ${result.req.id}")
+                        continue
+                    }
 
                     // Decision made, lets send it out on the rapid and then delete it from the polling list
                     decisionsMade++
