@@ -122,7 +122,6 @@ internal class PollListStorePostgres(private val ds: DataSource) : PollListStore
                     queryOf(
                         statement,
                     ).map {
-                        logg.info("DEBUG: here: ${it.toString()}")
                         Poll(
                             UUID.fromString(it.string("SOKNADS_ID")),
                             it.string("FNR_BRUKER"),
