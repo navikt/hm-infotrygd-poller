@@ -70,7 +70,7 @@ fun main() {
             8080,
         )
     ).build().apply {
-        LoggRiver(this)
+        if (Configuration.application["APP_PROFILE"] != "prod") LoggRiver(this)
         InfotrygdAddToPollVedtakListRiver(this, store)
     }
 
@@ -101,7 +101,6 @@ fun main() {
 
                 val innerList: MutableList<Infotrygd.Request> = mutableListOf()
                 for (poll in list) {
-                    logg.debug("DEBUG: innerList: poll: $poll")
                     innerList.add(Infotrygd.Request(
                         poll.søknadID.toString(),
                         poll.fnrBruker,
