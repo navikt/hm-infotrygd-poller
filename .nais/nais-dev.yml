@@ -21,6 +21,10 @@ spec:
       memory: 600Mi
   secureLogs:
     enabled: true
+  liveness:
+    path: /isalive
+  readiness:
+    path: /isready
   azure:
     application:
       enabled: true

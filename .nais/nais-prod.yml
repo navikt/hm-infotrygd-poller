@@ -19,12 +19,19 @@ spec:
     requests:
       cpu: 500m
       memory: 600Mi
+  secureLogs:
+    enabled: true
   liveness:
     path: /isalive
   readiness:
     path: /isready
-  secureLogs:
-    enabled: true
+  azure:
+    application:
+      enabled: true
+  accessPolicy:
+    outbound:
+      external:
+        - host: hm-infotrygd-proxy.prod-fss-pub.nais.io
   gcp:
     sqlInstances:
       - name: hm-infotrygd-poller-db-prod
