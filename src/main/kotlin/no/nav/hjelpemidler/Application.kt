@@ -190,7 +190,6 @@ fun main() {
                     avgQueryTimeElapsed_total += 1.0
 
                     if (result.vedtaksResult == "") { // No decision made yet
-                        logg.info("DEBUG: ROW EXISTS IN DATABASE BUT NO Vedtak DONE: ${result.req.id}")
                         continue
                     }
 
