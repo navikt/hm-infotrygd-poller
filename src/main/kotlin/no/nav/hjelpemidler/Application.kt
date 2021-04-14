@@ -115,9 +115,9 @@ fun main() {
                 // Catch any Infotrygd related errors specially here since we expect lots of downtime
                 try {
                     results = Infotrygd().batchQueryVedtakResultat(innerList)
+                    SensuMetrics().infotrygdDowntime(0.0)
                     if (firstNoticedInfotrygdWasDown != null) {
                         firstNoticedInfotrygdWasDown = null
-                        SensuMetrics().infotrygdDowntime(0.0)
                     }
                 } catch(e: Exception) {
                     logg.warn("warn: problem polling Infotrygd, some downtime is expected though (up to 24hrs now and then) so we only warn here: $e")
@@ -126,7 +126,12 @@ fun main() {
                     // TODO: Set up warnings to slack when we are down!
                     if (firstNoticedInfotrygdWasDown == null) firstNoticedInfotrygdWasDown = LocalDateTime.now()
                     val elapsed = Duration.between(firstNoticedInfotrygdWasDown, LocalDateTime.now())
-                    SensuMetrics().infotrygdDowntime((elapsed.toSeconds()).toDouble()/60.0)
+                    if (elapsed.toSeconds().toInt() == 0) {
+                        // Lets us notify in the panel right away, even if we just set firstNoticedInfotrygdWasDown above.
+                        SensuMetrics().infotrygdDowntime(0.01)
+                    }else{
+                        SensuMetrics().infotrygdDowntime((elapsed.toSeconds()).toDouble()/60.0)
+                    }
 
                     logg.warn("warn: sleeping for 1min due to error, before continuing")
                     Thread.sleep(1000*60)
