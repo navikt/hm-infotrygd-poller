@@ -29,6 +29,7 @@ internal class InfotrygdAddToPollVedtakListRiver(
         val saksblokk = packet["saksblokk"].asText()
         val saksnr = packet["saksnr"].asText()
 
+        logg.info("La til søknad i listen for polling i Infotrygd: $søknadId")
         store.add(søknadId, fnrBruker, trygdekontorNr, saksblokk, saksnr)
     }
 }
