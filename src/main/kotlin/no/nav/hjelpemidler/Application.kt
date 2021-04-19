@@ -5,18 +5,18 @@ import com.fasterxml.jackson.annotation.JsonProperty
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule
 import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import mu.KotlinLogging
-import no.nav.hjelpemidler.configuration.Configuration
 import no.nav.helse.rapids_rivers.KafkaConfig
 import no.nav.helse.rapids_rivers.RapidApplication
 import no.nav.helse.rapids_rivers.RapidsConnection
+import no.nav.hjelpemidler.configuration.Configuration
 import no.nav.hjelpemidler.db.PollListStorePostgres
-import no.nav.hjelpemidler.rivers.LoggRiver
-import no.nav.hjelpemidler.service.infotrygdproxy.Infotrygd
 import no.nav.hjelpemidler.db.dataSource
 import no.nav.hjelpemidler.db.migrate
 import no.nav.hjelpemidler.db.waitForDB
 import no.nav.hjelpemidler.metrics.SensuMetrics
 import no.nav.hjelpemidler.rivers.InfotrygdAddToPollVedtakListRiver
+import no.nav.hjelpemidler.rivers.LoggRiver
+import no.nav.hjelpemidler.service.infotrygdproxy.Infotrygd
 import java.net.InetAddress
 import java.time.Duration
 import java.time.LocalDate
@@ -81,7 +81,7 @@ fun main() {
         var firstNoticedInfotrygdWasDown: LocalDateTime? = null
         while (true) {
             // Check every 10s
-            Thread.sleep(1000*10)
+            Thread.sleep(1000 * 10)
 
             // Catch any and all database errors
             try {
@@ -101,13 +101,15 @@ fun main() {
 
                 val innerList: MutableList<Infotrygd.Request> = mutableListOf()
                 for (poll in list) {
-                    innerList.add(Infotrygd.Request(
-                        poll.søknadID.toString(),
-                        poll.fnrBruker,
-                        poll.trygdekontorNr,
-                        poll.saksblokk,
-                        poll.saksnr,
-                    ))
+                    innerList.add(
+                        Infotrygd.Request(
+                            poll.søknadID.toString(),
+                            poll.fnrBruker,
+                            poll.trygdekontorNr,
+                            poll.saksblokk,
+                            poll.saksnr,
+                        )
+                    )
                 }
 
                 var results: List<Infotrygd.Response>?
@@ -119,7 +121,7 @@ fun main() {
                     if (firstNoticedInfotrygdWasDown != null) {
                         firstNoticedInfotrygdWasDown = null
                     }
-                } catch(e: Exception) {
+                } catch (e: Exception) {
                     logg.warn("warn: problem polling Infotrygd, some downtime is expected though (up to 24hrs now and then) so we only warn here: $e")
                     e.printStackTrace()
 
@@ -128,12 +130,12 @@ fun main() {
                     if (elapsed.toSeconds().toInt() == 0) {
                         // Lets us notify in the panel right away, even if we just set firstNoticedInfotrygdWasDown above.
                         SensuMetrics().infotrygdDowntime(0.01)
-                    }else{
-                        SensuMetrics().infotrygdDowntime((elapsed.toSeconds()).toDouble()/60.0)
+                    } else {
+                        SensuMetrics().infotrygdDowntime((elapsed.toSeconds()).toDouble() / 60.0)
                     }
 
                     logg.warn("warn: sleeping for 1min due to error, before continuing")
-                    Thread.sleep(1000*60)
+                    Thread.sleep(1000 * 60)
                     continue
                 }
 
@@ -158,12 +160,16 @@ fun main() {
 
                         decisionsMade++
                         try {
-                            rapidApp.publish(mapper.writeValueAsString(VedtakResultat(
-                                "hm-VedtaksResultatFraInfotrygd",
-                                UUID.fromString(result.req.id),
-                                "I",
-                                LocalDate.now(),
-                            )))
+                            rapidApp.publish(
+                                mapper.writeValueAsString(
+                                    VedtakResultat(
+                                        "hm-VedtaksResultatFraInfotrygd",
+                                        UUID.fromString(result.req.id),
+                                        "I",
+                                        LocalDate.now(),
+                                    )
+                                )
+                            )
                             SensuMetrics().meldingTilRapidSuksess()
                         } catch (e: Exception) {
                             logg.error("error: sending hm-VedtaksResultatFraInfotrygd to rapid failed: $e")
@@ -217,16 +223,22 @@ fun main() {
                     logg.info("Vedtak decision found for søknadsID=${result.req.id} queryTimeElapsed=${result.queryTimeElapsedMs}ms")
                 }
 
-                val avgQueryTime = avgQueryTimeElapsed_counter/avgQueryTimeElapsed_total
+                val avgQueryTime = avgQueryTimeElapsed_counter / avgQueryTimeElapsed_total
                 logg.info("Processed batch successfully (decisions made / total batch size): $decisionsMade/${list.size}. Avg. time elapsed: $avgQueryTime")
 
                 SensuMetrics().avgQueryTimeMS(avgQueryTime)
                 SensuMetrics().decisionsMadeInPolling(decisionsMade.toLong())
 
+                val oldest = store.getOldestInPollList()
+                if (oldest != null) {
+                    SensuMetrics().oldestInPolling(oldest)
+                }
+
                 // Report total size of poll list to sensu after results have come in
                 val pollListSize2 = store.getPollListSize()
-                if (pollListSize2 != null && pollListSize2 != pollListSize) SensuMetrics().pollListSize(pollListSize2)
-
+                if (pollListSize2 != null && pollListSize2 != pollListSize) {
+                    SensuMetrics().pollListSize(pollListSize2)
+                }
             } catch (e: Exception) {
                 logg.error("error: encountered an exception while processing Infotrygd polls: $e")
                 e.printStackTrace()
@@ -246,7 +258,7 @@ fun main() {
     logg.info("Application ending.")
 }
 
-data class VedtakResultat (
+data class VedtakResultat(
     @JsonProperty("eventName")
     val eventName: String,
     @JsonProperty("søknadID")

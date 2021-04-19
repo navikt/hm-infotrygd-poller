@@ -1,15 +1,16 @@
 package no.nav.hjelpemidler.metrics
 
 import no.nav.hjelpemidler.configuration.Configuration
+import org.influxdb.dto.Point
 import org.slf4j.LoggerFactory
 import java.net.URI
 import java.net.http.HttpClient
 import java.net.http.HttpRequest
 import java.net.http.HttpResponse
 import java.time.Duration
+import java.time.LocalDateTime
 import java.util.*
 import java.util.concurrent.TimeUnit
-import org.influxdb.dto.Point
 
 class SensuMetrics {
     private val log = LoggerFactory.getLogger(SensuMetrics::class.java)
@@ -49,8 +50,11 @@ class SensuMetrics {
         registerPoint(INFOTRYGD_DOWNTIME, mapOf("down_time" to downtime), emptyMap())
     }
 
+    fun oldestInPolling(created: LocalDateTime) {
+        registerPoint(OLDEST_VEDTAK_IN_POLLING, mapOf("created" to created), emptyMap())
+    }
+
     private fun registerPoint(measurement: String, fields: Map<String, Any>, tags: Map<String, String>) {
-        log.info("Posting point to Influx: measurment {} fields {} tags {} ", measurement, fields, tags)
         val point = Point.measurement(measurement)
             .time(TimeUnit.MILLISECONDS.toNanos(System.currentTimeMillis()), TimeUnit.NANOSECONDS)
             .tag(tags)
@@ -80,12 +84,12 @@ class SensuMetrics {
 
     private class SensuEvent(sensuName: String, output: String) {
         val json: String = "{" +
-                "\"name\":\"" + sensuName + "\"," +
-                "\"type\":\"metric\"," +
-                "\"handlers\":[\"events_nano\"]," +
-                "\"output\":\"" + output.replace("\\", "\\\\", true) + "\"," +
-                "\"status\":0" +
-                "}"
+            "\"name\":\"" + sensuName + "\"," +
+            "\"type\":\"metric\"," +
+            "\"handlers\":[\"events_nano\"]," +
+            "\"output\":\"" + output.replace("\\", "\\\\", true) + "\"," +
+            "\"status\":0" +
+            "}"
     }
 
     companion object {
@@ -103,5 +107,6 @@ class SensuMetrics {
         const val AVG_QUERY_TIME = "$POLLER.avg.query.time.test"
         const val POLL_DECISIONSMADE = "$POLLER.poll.decisionsmade"
         const val INFOTRYGD_DOWNTIME = "$POLLER.infotrygd.downtime"
+        const val OLDEST_VEDTAK_IN_POLLING = "$POLLER.poll.oldest"
     }
 }

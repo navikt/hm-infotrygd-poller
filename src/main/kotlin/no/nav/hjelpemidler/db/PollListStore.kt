@@ -15,11 +15,12 @@ internal interface PollListStore {
     fun add(søknadId: UUID, fnrBruker: String, trygdekontorNr: String, saksblokk: String, saksnr: String)
     fun remove(søknadId: UUID)
     fun getPollListSize(): Int?
+    fun getOldestInPollList(): LocalDateTime?
     fun getPollingBatch(size: Int): List<Poll>
     fun postPollingUpdate(list: List<Poll>)
 }
 
-data class Poll (
+data class Poll(
     val søknadID: UUID,
     val fnrBruker: String,
     val trygdekontorNr: String,
@@ -66,7 +67,7 @@ internal class PollListStorePostgres(private val ds: DataSource) : PollListStore
             WHERE SOKNADS_ID = ?
         """.trimIndent().split("\n").joinToString(" ")
 
-       time("remove") {
+        time("remove") {
             using(sessionOf(ds)) { session ->
                 session.run(
                     queryOf(
@@ -90,6 +91,24 @@ internal class PollListStorePostgres(private val ds: DataSource) : PollListStore
                         statement,
                     ).map {
                         it.int("count")
+                    }.asSingle
+                )
+            }
+        }
+    }
+
+    override fun getOldestInPollList(): LocalDateTime? {
+        @Language("PostgreSQL") val statement = """
+            SELECT CREATED FROM public.V1_POLL_LIST ORDER BY created ASC LIMIT 1
+        """.trimIndent().split("\n").joinToString(" ")
+
+        return time("getOldestInPollList") {
+            using(sessionOf(ds)) { session ->
+                session.run(
+                    queryOf(
+                        statement,
+                    ).map {
+                        it.localDateTimeOrNull("CREATED")
                     }.asSingle
                 )
             }
@@ -169,12 +188,11 @@ internal class PollListStorePostgres(private val ds: DataSource) : PollListStore
     }
 
     private inline fun <T : Any?> time(queryName: String, function: () -> T) =
-            function()
-        /*
-        Prometheus.dbTimer.labels(queryName).startTimer().let { timer ->
-            function().also {
-                timer.observeDuration()
-            }
-        }*/
-
+        function()
+    /*
+    Prometheus.dbTimer.labels(queryName).startTimer().let { timer ->
+        function().also {
+            timer.observeDuration()
+        }
+    }*/
 }
