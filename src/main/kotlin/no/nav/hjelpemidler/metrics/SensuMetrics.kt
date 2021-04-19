@@ -51,7 +51,7 @@ class SensuMetrics {
     }
 
     fun oldestInPolling(created: LocalDateTime) {
-        registerPoint(OLDEST_VEDTAK_IN_POLLING, mapOf("created" to created.toString()), emptyMap())
+        registerPoint(OLDEST_VEDTAK_IN_POLLING, mapOf("oldest" to created.toString()), emptyMap())
     }
 
     private fun registerPoint(measurement: String, fields: Map<String, Any>, tags: Map<String, String>) {
