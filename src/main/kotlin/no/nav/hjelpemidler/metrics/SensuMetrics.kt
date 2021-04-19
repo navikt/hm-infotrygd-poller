@@ -67,6 +67,7 @@ class SensuMetrics {
     }
 
     private fun sendEvent(sensuEvent: SensuEvent) {
+        log.info(sensuEvent.json)
         val body = HttpRequest.BodyPublishers.ofString(sensuEvent.json)
         val request = HttpRequest.newBuilder()
             .POST(body)
