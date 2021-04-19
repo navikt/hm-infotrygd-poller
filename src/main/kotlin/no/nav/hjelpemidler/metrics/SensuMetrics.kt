@@ -89,7 +89,7 @@ class SensuMetrics {
             "\"name\":\"" + sensuName + "\"," +
             "\"type\":\"metric\"," +
             "\"handlers\":[\"events_nano\"]," +
-            "\"output\":\"" + output.replace("\\", "\\\\", true) + "\"," +
+            "\"output\":\"" + output.replace("\\", "\\\\", true).replace("\"", "\\\"") + "\"," +
             "\"status\":0" +
             "}"
     }
