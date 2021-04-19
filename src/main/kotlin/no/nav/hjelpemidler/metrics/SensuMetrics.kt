@@ -58,6 +58,10 @@ class SensuMetrics {
         registerPoint(RESULT_TYPE, mapOf("counter" to 1L), mapOf("resultat_type" to resultat))
     }
 
+    fun timeElapsedInPollingList(days: Long) {
+        registerPoint(TIME_ELAPSED_IN_POLLING_LIST, mapOf("days_elapsed" to days), emptyMap())
+    }
+
     private fun registerPoint(measurement: String, fields: Map<String, Any>, tags: Map<String, String>) {
         log.info("Posting point to Influx: measurment {} fields {} tags {} ", measurement, fields, tags)
         val point = Point.measurement(measurement)
@@ -115,5 +119,6 @@ class SensuMetrics {
         const val INFOTRYGD_DOWNTIME = "$POLLER.infotrygd.downtime"
         const val OLDEST_VEDTAK_IN_POLLING = "$POLLER.poll.oldest"
         const val RESULT_TYPE = "$POLLER.result.type"
+        const val TIME_ELAPSED_IN_POLLING_LIST = "$POLLER.poll.time.elapsed.in.list"
     }
 }

@@ -28,6 +28,7 @@ data class Poll(
     val saksnr: String,
     val numberOfPollings: Int,
     val lastPolled: LocalDateTime?,
+    val created: LocalDateTime?,
 )
 
 internal class PollListStorePostgres(private val ds: DataSource) : PollListStore {
@@ -124,7 +125,8 @@ internal class PollListStorePostgres(private val ds: DataSource) : PollListStore
                 SAKSBLOKK,
                 SAKSNR,
                 NUMBER_OF_POLLINGS,
-                LAST_POLL
+                LAST_POLL,
+                CREATED
             FROM public.V1_POLL_LIST
             WHERE (
                 LAST_POLL IS NULL
@@ -149,6 +151,7 @@ internal class PollListStorePostgres(private val ds: DataSource) : PollListStore
                             it.string("SAKSNR"),
                             it.int("NUMBER_OF_POLLINGS"),
                             it.localDateTimeOrNull("LAST_POLL"),
+                            it.localDateTimeOrNull("CREATED"),
                         )
                     }.asList
                 )
