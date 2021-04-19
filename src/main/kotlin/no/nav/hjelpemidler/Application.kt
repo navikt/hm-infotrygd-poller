@@ -231,7 +231,10 @@ fun main() {
 
                 val oldest = store.getOldestInPollList()
                 if (oldest != null) {
+                    logg.info("oldest in polling: $oldest")
                     SensuMetrics().oldestInPolling(oldest)
+                } else {
+                    logg.info("getOldestInPollList returned null")
                 }
 
                 // Report total size of poll list to sensu after results have come in

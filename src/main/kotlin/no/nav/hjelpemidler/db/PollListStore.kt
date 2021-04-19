@@ -99,7 +99,7 @@ internal class PollListStorePostgres(private val ds: DataSource) : PollListStore
 
     override fun getOldestInPollList(): LocalDateTime? {
         @Language("PostgreSQL") val statement = """
-            SELECT CREATED FROM public.V1_POLL_LIST ORDER BY created ASC LIMIT 1
+            SELECT MIN(CREATED) as CREATED FROM public.V1_POLL_LIST
         """.trimIndent().split("\n").joinToString(" ")
 
         return time("getOldestInPollList") {
