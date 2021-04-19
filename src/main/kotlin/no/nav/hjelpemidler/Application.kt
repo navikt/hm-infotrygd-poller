@@ -123,7 +123,6 @@ fun main() {
                     logg.warn("warn: problem polling Infotrygd, some downtime is expected though (up to 24hrs now and then) so we only warn here: $e")
                     e.printStackTrace()
 
-                    // TODO: Set up warnings to slack when we are down!
                     if (firstNoticedInfotrygdWasDown == null) firstNoticedInfotrygdWasDown = LocalDateTime.now()
                     val elapsed = Duration.between(firstNoticedInfotrygdWasDown, LocalDateTime.now())
                     if (elapsed.toSeconds().toInt() == 0) {
@@ -232,8 +231,10 @@ fun main() {
                 logg.error("error: encountered an exception while processing Infotrygd polls: $e")
                 e.printStackTrace()
 
-                logg.error("error: sleeping for 10min due to error, before continuing")
-                Thread.sleep(1000*60*10)
+                // logg.error("error: sleeping for 10min due to error, before continuing")
+                // Thread.sleep(1000*60*10)
+
+                Thread.sleep(1000)
                 continue
             }
         }
