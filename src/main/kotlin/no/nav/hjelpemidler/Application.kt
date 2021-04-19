@@ -178,6 +178,9 @@ fun main() {
                             throw e
                         }
 
+                        // Metrics on the different possible result types
+                        SensuMetrics().vedtaksResultatType("I")
+
                         logg.debug("DEBUG: Removing from store: $result")
                         store.remove(UUID.fromString(result.req.id))
 
@@ -218,6 +221,9 @@ fun main() {
                         SensuMetrics().meldingTilRapidFeilet()
                         throw e
                     }
+
+                    // Metrics on the different possible result types
+                    SensuMetrics().vedtaksResultatType(result.vedtaksResult!!)
 
                     store.remove(UUID.fromString(result.req.id))
                     logg.info("Vedtak decision found for søknadsID=${result.req.id} queryTimeElapsed=${result.queryTimeElapsedMs}ms")

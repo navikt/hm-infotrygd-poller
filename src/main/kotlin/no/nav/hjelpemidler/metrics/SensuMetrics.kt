@@ -54,6 +54,10 @@ class SensuMetrics {
         registerPoint(OLDEST_VEDTAK_IN_POLLING, mapOf("oldest" to created.toString()), emptyMap())
     }
 
+    fun vedtaksResultatType(resultat: String) {
+        registerPoint(RESULT_TYPE, mapOf("counter" to 1L), mapOf("resultat_type" to resultat))
+    }
+
     private fun registerPoint(measurement: String, fields: Map<String, Any>, tags: Map<String, String>) {
         log.info("Posting point to Influx: measurment {} fields {} tags {} ", measurement, fields, tags)
         val point = Point.measurement(measurement)
@@ -110,5 +114,6 @@ class SensuMetrics {
         const val POLL_DECISIONSMADE = "$POLLER.poll.decisionsmade"
         const val INFOTRYGD_DOWNTIME = "$POLLER.infotrygd.downtime"
         const val OLDEST_VEDTAK_IN_POLLING = "$POLLER.poll.oldest"
+        const val RESULT_TYPE = "$POLLER.result.type"
     }
 }
