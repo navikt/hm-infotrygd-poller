@@ -179,6 +179,9 @@ fun main() {
                             throw e
                         }
 
+                        // Metrics on the different possible result types
+                        SensuMetrics().vedtaksResultatType("I")
+
                         logg.debug("DEBUG: Removing from store: $result")
                         store.remove(UUID.fromString(result.req.id))
 
@@ -220,6 +223,23 @@ fun main() {
                         SensuMetrics().meldingTilRapidFeilet()
                         throw e
                     }
+
+                    // Find original item in list that matches this result and report the elapsed time in the polling
+                    // list before the decision was made (note: number in calendar days)
+                    var created: LocalDateTime? = null
+                    for (item in list) {
+                        if (item.søknadID.toString() == result.req.id) {
+                            created = item.created
+                            break
+                        }
+                    }
+                    if (created != null) {
+                        val elapsed = Duration.between(created, LocalDateTime.now())
+                        SensuMetrics().timeElapsedInPollingList(elapsed.toDays())
+                    }
+
+                    // Metrics on the different possible result types
+                    SensuMetrics().vedtaksResultatType(result.vedtaksResult!!)
 
                     store.remove(UUID.fromString(result.req.id))
                     logg.info("Vedtak decision found for søknadsID=${result.req.id} queryTimeElapsed=${result.queryTimeElapsedMs}ms")

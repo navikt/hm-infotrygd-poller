@@ -12,7 +12,7 @@ import javax.sql.DataSource
 private val logg = KotlinLogging.logger {}
 
 internal interface PollListStore {
-    fun add(søknadId: UUID, fnrBruker: String, trygdekontorNr: String, saksblokk: String, saksnr: String)
+    fun add(søknadId: UUID, fnrBruker: String, trygdekontorNr: String, saksblokk: String, saksnr: String): Int
     fun remove(søknadId: UUID)
     fun getPollListSize(): Int?
     fun getOldestInPollList(): LocalDateTime?
@@ -28,26 +28,25 @@ data class Poll(
     val saksnr: String,
     val numberOfPollings: Int,
     val lastPolled: LocalDateTime?,
+    val created: LocalDateTime?,
 )
 
 internal class PollListStorePostgres(private val ds: DataSource) : PollListStore {
 
-    override fun add(søknadId: UUID, fnrBruker: String, trygdekontorNr: String, saksblokk: String, saksnr: String) {
-        @Language("PostgreSQL") val statement = """
-            INSERT INTO public.V1_POLL_LIST (
-                SOKNADS_ID,
-                FNR_BRUKER,
-                TKNR,
-                SAKSBLOKK,
-                SAKSNR
-            ) VALUES (?, ?, ?, ?, ?)
-        """.trimIndent().split("\n").joinToString(" ")
-
-        val effectedRowCount = time("add") {
+    override fun add(søknadId: UUID, fnrBruker: String, trygdekontorNr: String, saksblokk: String, saksnr: String): Int =
+        time("add") {
             using(sessionOf(ds)) { session ->
                 session.run(
                     queryOf(
-                        statement,
+                        """
+                            INSERT INTO public.V1_POLL_LIST (
+                                SOKNADS_ID,
+                                FNR_BRUKER,
+                                TKNR,
+                                SAKSBLOKK,
+                                SAKSNR
+                            ) VALUES (?, ?, ?, ?, ?) ON CONFLICT DO NOTHING
+                        """.trimIndent().split("\n").joinToString(" "),
                         søknadId,
                         fnrBruker,
                         trygdekontorNr,
@@ -57,9 +56,6 @@ internal class PollListStorePostgres(private val ds: DataSource) : PollListStore
                 )
             }
         }
-
-        if (effectedRowCount != 1) throw Exception("unexpected effected row count of $effectedRowCount (expected 1) when adding a Vedtak to monitor/poll")
-    }
 
     override fun remove(søknadId: UUID) {
         @Language("PostgreSQL") val statement = """
@@ -124,7 +120,8 @@ internal class PollListStorePostgres(private val ds: DataSource) : PollListStore
                 SAKSBLOKK,
                 SAKSNR,
                 NUMBER_OF_POLLINGS,
-                LAST_POLL
+                LAST_POLL,
+                CREATED
             FROM public.V1_POLL_LIST
             WHERE (
                 LAST_POLL IS NULL
@@ -149,6 +146,7 @@ internal class PollListStorePostgres(private val ds: DataSource) : PollListStore
                             it.string("SAKSNR"),
                             it.int("NUMBER_OF_POLLINGS"),
                             it.localDateTimeOrNull("LAST_POLL"),
+                            it.localDateTimeOrNull("CREATED"),
                         )
                     }.asList
                 )

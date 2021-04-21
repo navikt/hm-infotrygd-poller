@@ -69,4 +69,15 @@ internal class InfotrygdServiceTest {
         assertTrue(rawJson.contains(contains))
     }
 
+    @Test
+    fun `Test escaping of strings when manually composing json`() {
+        val someString = "hm-infotrygd-poller.poll.oldest,application=hm-infotrygd-poller,cluster=prod-gcp,namespace=teamdigihot oldest=\"2021-04-14T08:16:59.185724\" 1618837776003000000"
+        var someOtherString = "hello: \"$someString\""
+        println("Before: $someOtherString")
+
+        someOtherString = "hello: \"${someString.replace("\"", "\\\"", true)}\""
+        println("After: $someOtherString")
+        println("Test: \\,\\\\")
+    }
+
 }
