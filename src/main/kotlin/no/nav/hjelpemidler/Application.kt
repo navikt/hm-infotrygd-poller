@@ -167,6 +167,7 @@ fun main() {
                                         UUID.fromString(result.req.id),
                                         "I",
                                         LocalDate.now(),
+                                        result.req.fnr
                                     )
                                 )
                             )
