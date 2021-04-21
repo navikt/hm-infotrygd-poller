@@ -29,7 +29,16 @@ internal class InfotrygdAddToPollVedtakListRiver(
         val saksblokk = packet["saksblokk"].asText()
         val saksnr = packet["saksnr"].asText()
 
-        logg.info("La til søknad i listen for polling i Infotrygd: $søknadId")
-        store.add(søknadId, fnrBruker, trygdekontorNr, saksblokk, saksnr)
+        kotlin.runCatching {
+            store.add(søknadId, fnrBruker, trygdekontorNr, saksblokk, saksnr)
+        }.onSuccess {
+            if (it > 0) {
+                logg.info("La til søknad i listen for polling i Infotrygd: søknadsID=$søknadId")
+            } else {
+                logg.warn("Feilet i å legge inn søknad i polling liste, kanskje den allerede er i listen(?): søknadsID=$søknadId")
+            }
+        }.onFailure {
+            logg.error("Failed i å legge søknad inn i polling listen: søknadsID=$søknadId")
+        }.getOrThrow()
     }
 }

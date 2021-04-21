@@ -12,7 +12,7 @@ import javax.sql.DataSource
 private val logg = KotlinLogging.logger {}
 
 internal interface PollListStore {
-    fun add(søknadId: UUID, fnrBruker: String, trygdekontorNr: String, saksblokk: String, saksnr: String)
+    fun add(søknadId: UUID, fnrBruker: String, trygdekontorNr: String, saksblokk: String, saksnr: String): Int
     fun remove(søknadId: UUID)
     fun getPollListSize(): Int?
     fun getOldestInPollList(): LocalDateTime?
@@ -33,22 +33,20 @@ data class Poll(
 
 internal class PollListStorePostgres(private val ds: DataSource) : PollListStore {
 
-    override fun add(søknadId: UUID, fnrBruker: String, trygdekontorNr: String, saksblokk: String, saksnr: String) {
-        @Language("PostgreSQL") val statement = """
-            INSERT INTO public.V1_POLL_LIST (
-                SOKNADS_ID,
-                FNR_BRUKER,
-                TKNR,
-                SAKSBLOKK,
-                SAKSNR
-            ) VALUES (?, ?, ?, ?, ?)
-        """.trimIndent().split("\n").joinToString(" ")
-
-        val effectedRowCount = time("add") {
+    override fun add(søknadId: UUID, fnrBruker: String, trygdekontorNr: String, saksblokk: String, saksnr: String): Int =
+        time("add") {
             using(sessionOf(ds)) { session ->
                 session.run(
                     queryOf(
-                        statement,
+                        """
+                            INSERT INTO public.V1_POLL_LIST (
+                                SOKNADS_ID,
+                                FNR_BRUKER,
+                                TKNR,
+                                SAKSBLOKK,
+                                SAKSNR
+                            ) VALUES (?, ?, ?, ?, ?) ON CONFLICT DO NOTHING
+                        """.trimIndent().split("\n").joinToString(" "),
                         søknadId,
                         fnrBruker,
                         trygdekontorNr,
@@ -58,9 +56,6 @@ internal class PollListStorePostgres(private val ds: DataSource) : PollListStore
                 )
             }
         }
-
-        if (effectedRowCount != 1) throw Exception("unexpected effected row count of $effectedRowCount (expected 1) when adding a Vedtak to monitor/poll")
-    }
 
     override fun remove(søknadId: UUID) {
         @Language("PostgreSQL") val statement = """
