@@ -208,6 +208,7 @@ fun main() {
                                     UUID.fromString(result.req.id),
                                     result.vedtaksResult!!,
                                     result.vedtaksDate!!,
+                                    result.req.fnr
                                 )
                             )
                         )
@@ -271,4 +272,6 @@ data class VedtakResultat(
     @JsonFormat(shape = JsonFormat.Shape.STRING)
     @JsonProperty("vedtaksDato")
     val vedtaksDato: LocalDate,
+    @JsonProperty("fnrBruker")
+    val fnrBruker: String,
 )
