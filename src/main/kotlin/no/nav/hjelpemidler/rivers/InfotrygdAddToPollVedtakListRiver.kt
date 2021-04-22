@@ -2,6 +2,7 @@ package no.nav.hjelpemidler.rivers
 
 import mu.KotlinLogging
 import no.nav.helse.rapids_rivers.JsonMessage
+import no.nav.helse.rapids_rivers.MessageProblems
 import no.nav.helse.rapids_rivers.RapidsConnection
 import no.nav.helse.rapids_rivers.River
 import no.nav.hjelpemidler.db.PollListStore
@@ -20,6 +21,11 @@ internal class InfotrygdAddToPollVedtakListRiver(
             this.validate{ it.demandValue("eventName", "hm-InfotrygdAddToPollVedtakList") }
             this.validate{ it.requireKey("søknadId", "fnrBruker", "trygdekontorNr", "saksblokk", "saksnr") }
         }.register(this)
+    }
+
+    override fun onError(problems: MessageProblems, context: RapidsConnection.MessageContext) {
+        sikkerlogg.info("River required keys had problems in parsing message from rapid: ${problems.toExtendedReport()}")
+        throw Exception("River required keys had problems in parsing message from rapid, see Kibana index tjenestekall-* (sikkerlogg) for details")
     }
 
     override fun onPacket(packet: JsonMessage, context: RapidsConnection.MessageContext) {
