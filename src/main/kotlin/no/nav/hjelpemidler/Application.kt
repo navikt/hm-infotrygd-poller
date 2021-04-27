@@ -152,8 +152,11 @@ fun main() {
                 var decisionsMade = 0
                 var avgQueryTimeElapsed_counter = 0.0
                 var avgQueryTimeElapsed_total = 0.0
+
                 for (result in results) {
                     if (Configuration.application["APP_PROFILE"] == "dev") {
+                        val mockVedtaksresultat = "DI"
+
                         // NOTE: Mocking out answer due to dev having a static database
                         avgQueryTimeElapsed_counter += result.queryTimeElapsedMs
                         avgQueryTimeElapsed_total += 1.0
@@ -165,7 +168,7 @@ fun main() {
                                     VedtakResultat(
                                         "hm-VedtaksResultatFraInfotrygd",
                                         UUID.fromString(result.req.id),
-                                        "I",
+                                        mockVedtaksresultat,
                                         LocalDate.now(),
                                         result.req.fnr
                                     )
@@ -180,7 +183,7 @@ fun main() {
                         }
 
                         // Metrics on the different possible result types
-                        SensuMetrics().vedtaksResultatType("I")
+                        SensuMetrics().vedtaksResultatType(mockVedtaksresultat)
 
                         logg.debug("DEBUG: Removing from store: $result")
                         store.remove(UUID.fromString(result.req.id))
