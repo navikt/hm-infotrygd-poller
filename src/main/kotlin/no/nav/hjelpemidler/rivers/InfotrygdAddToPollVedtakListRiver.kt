@@ -2,7 +2,7 @@ package no.nav.hjelpemidler.rivers
 
 import mu.KotlinLogging
 import no.nav.helse.rapids_rivers.JsonMessage
-import no.nav.helse.rapids_rivers.MessageProblems
+import no.nav.helse.rapids_rivers.MessageContext
 import no.nav.helse.rapids_rivers.RapidsConnection
 import no.nav.helse.rapids_rivers.River
 import no.nav.hjelpemidler.db.PollListStore
@@ -23,7 +23,7 @@ internal class InfotrygdAddToPollVedtakListRiver(
         }.register(this)
     }
 
-    override fun onPacket(packet: JsonMessage, context: RapidsConnection.MessageContext) {
+    override fun onPacket(packet: JsonMessage, context: MessageContext) {
         val søknadId = UUID.fromString(packet["søknadId"].asText())
         val fnrBruker = packet["fnrBruker"].asText()
         val trygdekontorNr = packet["trygdekontorNr"].asText()

@@ -79,14 +79,13 @@ internal object Configuration {
     val rapidConfig: Map<String, String> = mapOf(
         "RAPID_KAFKA_CLUSTER" to "gcp",
         "RAPID_APP_NAME" to "hm-infotrygd-poller",
-        "KAFKA_BOOTSTRAP_SERVERS" to config()[Key("kafka.brokers", stringType)],
+        "KAFKA_BROKERS" to config()[Key("kafka.brokers", stringType)],
         "KAFKA_CONSUMER_GROUP_ID" to "hm-infotrygd-poller-v1",
         "KAFKA_RAPID_TOPIC" to config()[Key("kafka.aiven.topic", stringType)],
         "KAFKA_RESET_POLICY" to config()[Key("kafka.reset.policy", stringType)],
         "KAFKA_TRUSTSTORE_PATH" to config()[Key("KAFKA_TRUSTSTORE_PATH", stringType)],
-        "KAFKA_TRUSTSTORE_PASSWORD" to config()[Key("KAFKA_CREDSTORE_PASSWORD", stringType)],
         "KAFKA_KEYSTORE_PATH" to config()[Key("KAFKA_KEYSTORE_PATH", stringType)],
-        "KAFKA_KEYSTORE_PASSWORD" to config()[Key("KAFKA_CREDSTORE_PASSWORD", stringType)],
+        "KAFKA_CREDSTORE_PASSWORD" to config()[Key("KAFKA_CREDSTORE_PASSWORD", stringType)],
         "HTTP_PORT" to "8080",
         "KAFKA_CLIENT_ID" to config()[Key("kafka.client.id", stringType)],
     ) + System.getenv().filter { it.key.startsWith("NAIS_") }

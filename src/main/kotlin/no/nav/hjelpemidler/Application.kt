@@ -51,17 +51,17 @@ fun main() {
             Configuration.rapidConfig["KAFKA_RAPID_TOPIC"]!!,
             emptyList(),
             KafkaConfig(
-                Configuration.rapidConfig["KAFKA_BOOTSTRAP_SERVERS"]!!,
+                Configuration.rapidConfig["KAFKA_BROKERS"]!!,
                 Configuration.rapidConfig["KAFKA_CONSUMER_GROUP_ID"]!!,
                 Configuration.rapidConfig["KAFKA_CLIENT_ID"]!!,
                 null,
                 null,
                 Configuration.rapidConfig["KAFKA_TRUSTSTORE_PATH"]!!,
-                Configuration.rapidConfig["KAFKA_TRUSTSTORE_PASSWORD"]!!,
+                Configuration.rapidConfig["KAFKA_CREDSTORE_PASSWORD"]!!,
                 "jks",
                 "PKCS12",
                 Configuration.rapidConfig["KAFKA_KEYSTORE_PATH"]!!,
-                Configuration.rapidConfig["KAFKA_KEYSTORE_PASSWORD"]!!,
+                Configuration.rapidConfig["KAFKA_CREDSTORE_PASSWORD"]!!,
                 Configuration.rapidConfig["KAFKA_RESET_POLICY"]!!,
                 false,
                 null,
@@ -242,7 +242,7 @@ fun main() {
                     }
 
                     // Metrics on the different possible result types
-                    SensuMetrics().vedtaksResultatType(result.vedtaksResult!!)
+                    SensuMetrics().vedtaksResultatType(result.vedtaksResult)
 
                     store.remove(UUID.fromString(result.req.id))
                     logg.info("Vedtak decision found for søknadsID=${result.req.id} queryTimeElapsed=${result.queryTimeElapsedMs}ms")
