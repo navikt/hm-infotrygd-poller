@@ -210,7 +210,8 @@ fun main() {
                     val waitUntil = result.vedtaksDate!!.plusDays(1).atTime(6, 0, 0)
                     if (LocalDateTime.now().isBefore(waitUntil)) {
                         logg.info(
-                            "DEBUG: Decision has been made but we will wait until after 06:00 the next day before passing it on to the rapid: vedtaksDato={}, waitUntil={}, now={}",
+                            "DEBUG: Decision has been made but we will wait until after 06:00 the next day before passing it on to the rapid: requestId={} vedtaksDato={}, waitUntil={}, now={}",
+                            result.req.id,
                             result.vedtaksDate,
                             waitUntil,
                             LocalDateTime.now(),
