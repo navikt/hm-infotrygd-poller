@@ -205,6 +205,19 @@ fun main() {
                         continue
                     }
 
+                    // Make the result available to the rest of the infrastructure some time after 06:00 the following
+                    // day after the decision is made. This allows caseworkers to fix mistakes within the same day.
+                    val waitUntil = result.vedtaksDate!!.plusDays(1).atTime(6, 0, 0)
+                    if (LocalDateTime.now().isBefore(waitUntil)) {
+                        logg.info(
+                            "DEBUG: Decision has been made but we will wait until after 06:00 the next day before passing it on to the rapid: vedtaksDato={}, waitUntil={}, now={}",
+                            result.vedtaksDate,
+                            waitUntil,
+                            LocalDateTime.now(),
+                        )
+                        continue
+                    }
+
                     // Decision made, lets send it out on the rapid and then delete it from the polling list
                     decisionsMade++
                     try {
@@ -214,7 +227,7 @@ fun main() {
                                     "hm-VedtaksResultatFraInfotrygd",
                                     UUID.fromString(result.req.id),
                                     result.vedtaksResult!!,
-                                    result.vedtaksDate!!,
+                                    result.vedtaksDate,
                                     result.req.fnr
                                 )
                             )

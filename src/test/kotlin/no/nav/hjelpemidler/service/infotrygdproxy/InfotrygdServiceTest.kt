@@ -3,8 +3,11 @@ package no.nav.hjelpemidler.service.infotrygdproxy
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule
 import com.fasterxml.jackson.module.kotlin.readValue
+import mu.KotlinLogging
 import no.nav.hjelpemidler.VedtakResultat
+import okhttp3.internal.wait
 import java.time.LocalDate
+import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
 import java.util.*
 import kotlin.test.Test
@@ -13,6 +16,7 @@ import kotlin.test.assertTrue
 import kotlin.time.ExperimentalTime
 
 internal class InfotrygdServiceTest {
+    private val logg = KotlinLogging.logger {}
 
     @ExperimentalTime
     @Test
@@ -78,6 +82,36 @@ internal class InfotrygdServiceTest {
         someOtherString = "hello: \"${someString.replace("\"", "\\\"", true)}\""
         println("After: $someOtherString")
         println("Test: \\,\\\\")
+    }
+
+    @ExperimentalTime
+    @Test
+    fun `Test delaying results based on vedtaksDato`() {
+        val now = LocalDateTime.of(2021, 11, 1, 6, 5, 32)
+
+        val results = listOf(
+            Infotrygd.Response(Infotrygd.Request("", "", "", "", ""), "I", LocalDate.of(2021, 10, 31), "", 1.0),
+            Infotrygd.Response(Infotrygd.Request("", "", "", "", ""), "A", LocalDate.of(2021, 11, 1), "", 1.0),
+            Infotrygd.Response(Infotrygd.Request("", "", "", "", ""), "DI", LocalDate.of(2021, 11, 2), "", 1.0),
+        )
+
+        for (result in results) {
+            val waitUntil = result.vedtaksDate!!.plusDays(1).atTime(6, 0, 0)
+            if (now.isBefore(waitUntil)) {
+                logg.info(
+                    "DEBUG: Decision has been made but we will wait until after 06:00 the next day before passing it on to the rapid: vedtaksDato={}, waitUntil={}, now={}",
+                    result.vedtaksDate,
+                    waitUntil,
+                    now,
+                )
+                continue
+            }
+            logg.info(
+                "Decision made {} < {}",
+                waitUntil,
+                now
+            )
+        }
     }
 
 }
