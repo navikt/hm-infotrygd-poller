@@ -154,7 +154,7 @@ fun main() {
                 var avgQueryTimeElapsed_total = 0.0
 
                 for (result in results) {
-                    if (Configuration.application["APP_PROFILE"] == "dev") {
+                    /*if (Configuration.application["APP_PROFILE"] == "dev") {
                         val mockVedtaksresultat = "IM"
 
                         // NOTE: Mocking out answer due to dev having a static database
@@ -191,7 +191,7 @@ fun main() {
                         logg.info("Vedtak decision found for søknadsID=${result.req.id} queryTimeElapsed=${result.queryTimeElapsedMs}ms")
 
                         continue
-                    }
+                    }*/
 
                     if (result.error != null) {
                         logg.error("error: decision polling failed with error: ${result.error}")
