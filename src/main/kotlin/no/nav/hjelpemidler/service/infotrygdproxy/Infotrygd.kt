@@ -21,6 +21,7 @@ import java.time.LocalDate
 import java.time.LocalDateTime
 import java.util.*
 import kotlin.time.Duration
+import kotlin.time.DurationUnit
 import kotlin.time.ExperimentalTime
 import kotlin.time.measureTime
 
@@ -85,7 +86,8 @@ class Infotrygd {
             results = mapper.readValue(jsonResp)
         }
 
-        if (Configuration.application["APP_PROFILE"] != "prod") logg.info("DEBUG: Response received from infotrygd: $results. Total request time elapsed: ${elapsed.inMilliseconds}")
+        if (Configuration.application["APP_PROFILE"] != "prod") logg.info("DEBUG: Response received from infotrygd: $results. Total request time elapsed: ${elapsed.toDouble(
+            DurationUnit.MILLISECONDS)}")
 
         return results!!.toList()
     }

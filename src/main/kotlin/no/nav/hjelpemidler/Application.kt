@@ -24,6 +24,7 @@ import java.time.LocalDateTime
 import java.util.*
 import kotlin.concurrent.thread
 import kotlin.time.*
+import kotlin.time.Duration.Companion.minutes
 
 private val logg = KotlinLogging.logger {}
 // private val sikkerlogg = KotlinLogging.logger("tjenestekall")
@@ -73,6 +74,8 @@ fun main() {
         if (Configuration.application["APP_PROFILE"] != "prod") LoggRiver(this)
         InfotrygdAddToPollVedtakListRiver(this, store)
     }
+    
+    val metrics = SensuMetrics(rapidApp)
 
     // Run background daemon for polling Infotrygd
     thread(isDaemon = true) {
@@ -91,10 +94,10 @@ fun main() {
 
                 // Report total size of poll list to sensu
                 val pollListSize = store.getPollListSize()
-                if (pollListSize != null) SensuMetrics().pollListSize(pollListSize)
+                if (pollListSize != null) metrics.pollListSize(pollListSize)
 
                 // Report batch size we are polling to sensu
-                SensuMetrics().batchSize(list.size)
+                metrics.batchSize(list.size)
 
                 logg.info("Batch processing starting (size: ${list.size})")
                 if (Configuration.application["APP_PROFILE"] != "prod") logg.debug("DEBUG: Batch: $list")
@@ -117,7 +120,7 @@ fun main() {
                 // Catch any Infotrygd related errors specially here since we expect lots of downtime
                 try {
                     results = Infotrygd().batchQueryVedtakResultat(innerList)
-                    SensuMetrics().infotrygdDowntime(0.0)
+                    metrics.infotrygdDowntime(0.0)
                     if (firstNoticedInfotrygdWasDown != null) {
                         firstNoticedInfotrygdWasDown = null
                     }
@@ -129,9 +132,9 @@ fun main() {
                     val elapsed = Duration.between(firstNoticedInfotrygdWasDown, LocalDateTime.now())
                     if (elapsed.toSeconds().toInt() == 0) {
                         // Lets us notify in the panel right away, even if we just set firstNoticedInfotrygdWasDown above.
-                        SensuMetrics().infotrygdDowntime(0.01)
+                        metrics.infotrygdDowntime(0.01)
                     } else {
-                        SensuMetrics().infotrygdDowntime((elapsed.toSeconds()).toDouble() / 60.0)
+                        metrics.infotrygdDowntime((elapsed.toSeconds()).toDouble() / 60.0)
                     }
 
                     logg.warn("warn: sleeping for 1min due to error, before continuing")
@@ -174,16 +177,16 @@ fun main() {
                                     )
                                 )
                             )
-                            SensuMetrics().meldingTilRapidSuksess()
+                            metrics.meldingTilRapidSuksess()
                         } catch (e: Exception) {
                             logg.error("error: sending hm-VedtaksResultatFraInfotrygd to rapid failed: $e")
                             e.printStackTrace()
-                            SensuMetrics().meldingTilRapidFeilet()
+                            metrics.meldingTilRapidFeilet()
                             throw e
                         }
 
                         // Metrics on the different possible result types
-                        SensuMetrics().vedtaksResultatType(mockVedtaksresultat)
+                        metrics.vedtaksResultatType(mockVedtaksresultat)
 
                         logg.debug("DEBUG: Removing from store: $result")
                         store.remove(UUID.fromString(result.req.id))
@@ -233,11 +236,11 @@ fun main() {
                                 )
                             )
                         )
-                        SensuMetrics().meldingTilRapidSuksess()
+                        metrics.meldingTilRapidSuksess()
                     } catch (e: Exception) {
                         logg.error("error: sending hm-VedtaksResultatFraInfotrygd to rapid failed: $e")
                         e.printStackTrace()
-                        SensuMetrics().meldingTilRapidFeilet()
+                        metrics.meldingTilRapidFeilet()
                         throw e
                     }
 
@@ -252,11 +255,11 @@ fun main() {
                     }
                     if (created != null) {
                         val elapsed = Duration.between(created, LocalDateTime.now())
-                        SensuMetrics().timeElapsedInPollingList(elapsed.toDays())
+                        metrics.timeElapsedInPollingList(elapsed.toDays())
                     }
 
                     // Metrics on the different possible result types
-                    SensuMetrics().vedtaksResultatType(result.vedtaksResult)
+                    metrics.vedtaksResultatType(result.vedtaksResult)
 
                     store.remove(UUID.fromString(result.req.id))
                     logg.info("Vedtak decision found for søknadsID=${result.req.id} queryTimeElapsed=${result.queryTimeElapsedMs}ms")
@@ -265,13 +268,13 @@ fun main() {
                 val avgQueryTime = avgQueryTimeElapsed_counter / avgQueryTimeElapsed_total
                 logg.info("Processed batch successfully (decisions made / total batch size): $decisionsMade/${list.size}. Avg. time elapsed: $avgQueryTime")
 
-                SensuMetrics().avgQueryTimeMS(avgQueryTime)
-                SensuMetrics().decisionsMadeInPolling(decisionsMade.toLong())
+                metrics.avgQueryTimeMS(avgQueryTime)
+                metrics.decisionsMadeInPolling(decisionsMade.toLong())
 
                 val oldest = store.getOldestInPollList()
                 if (oldest != null) {
                     logg.info("oldest in polling: $oldest")
-                    SensuMetrics().oldestInPolling(oldest)
+                    metrics.oldestInPolling(oldest)
                 } else {
                     logg.info("getOldestInPollList returned null")
                 }
@@ -279,7 +282,7 @@ fun main() {
                 // Report total size of poll list to sensu after results have come in
                 val pollListSize2 = store.getPollListSize()
                 if (pollListSize2 != null && pollListSize2 != pollListSize) {
-                    SensuMetrics().pollListSize(pollListSize2)
+                    metrics.pollListSize(pollListSize2)
                 }
             } catch (e: Exception) {
                 logg.error("error: encountered an exception while processing Infotrygd polls: $e")

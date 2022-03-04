@@ -1,5 +1,6 @@
 package no.nav.hjelpemidler.metrics
 
+import no.nav.helse.rapids_rivers.MessageContext
 import no.nav.hjelpemidler.configuration.Configuration
 import org.influxdb.dto.Point
 import org.slf4j.LoggerFactory
@@ -12,10 +13,11 @@ import java.time.LocalDateTime
 import java.util.*
 import java.util.concurrent.TimeUnit
 
-class SensuMetrics {
+class SensuMetrics(messageContext: MessageContext) {
     private val log = LoggerFactory.getLogger(SensuMetrics::class.java)
     private val sensuURL = Configuration.application["SENSU_URL"] ?: "http://localhost/unconfigured"
     private val sensuName = "hm-infotrygd-poller-events"
+    private val metricsProducer = MetricsProducer(messageContext)
 
     private val httpClient = HttpClient.newBuilder()
         .version(HttpClient.Version.HTTP_1_1)
@@ -72,6 +74,7 @@ class SensuMetrics {
             .build()
 
         sendEvent(SensuEvent(sensuName, point.lineProtocol()))
+        metricsProducer.hendelseOpprettet(measurement, fields, tags)
     }
 
     private fun sendEvent(sensuEvent: SensuEvent) {
@@ -94,12 +97,12 @@ class SensuMetrics {
 
     private class SensuEvent(sensuName: String, output: String) {
         val json: String = "{" +
-            "\"name\":\"" + sensuName + "\"," +
-            "\"type\":\"metric\"," +
-            "\"handlers\":[\"events_nano\"]," +
-            "\"output\":\"" + output.replace("\\", "\\\\", true).replace("\"", "\\\"") + "\"," +
-            "\"status\":0" +
-            "}"
+                "\"name\":\"" + sensuName + "\"," +
+                "\"type\":\"metric\"," +
+                "\"handlers\":[\"events_nano\"]," +
+                "\"output\":\"" + output.replace("\\", "\\\\", true).replace("\"", "\\\"") + "\"," +
+                "\"status\":0" +
+                "}"
     }
 
     companion object {

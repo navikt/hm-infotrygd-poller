@@ -10,13 +10,14 @@ import java.lang.Exception
 import java.net.Socket
 import java.time.LocalDateTime
 import kotlin.time.Duration
+import kotlin.time.DurationUnit
 import kotlin.time.ExperimentalTime
 
 private val logg = KotlinLogging.logger {}
 
 @ExperimentalTime
 internal fun waitForDB(timeout: Duration): Boolean {
-    val deadline = LocalDateTime.now().plusSeconds(timeout.inSeconds.toLong())
+    val deadline = LocalDateTime.now().plusSeconds(timeout.toDouble(DurationUnit.SECONDS).toLong())
     while (true) {
         try {
             Socket(Configuration.db["DB_HOST"]!!, Configuration.db["DB_PORT"]!!.toInt())
