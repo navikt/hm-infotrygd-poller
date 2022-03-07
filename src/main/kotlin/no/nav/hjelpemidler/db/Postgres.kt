@@ -36,6 +36,7 @@ internal fun migrate() =
 
 internal fun hikariConfig() =
     HikariConfig().apply {
+        driverClassName = "org.postgresql.Driver"
         jdbcUrl = "jdbc:postgresql://${Configuration.db["DB_HOST"]!!}:${Configuration.db["DB_PORT"]!!}/${Configuration.db["DB_DATABASE"]!!}"
         maximumPoolSize = 3
         minimumIdle = 1
