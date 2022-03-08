@@ -62,7 +62,8 @@ internal class InfotrygdServiceTest {
             UUID.randomUUID(),
             "I",
             expectedDate,
-            "10127622634"
+            "10127622634",
+            ""
         ))
 
         val contains = expectedDate.format(DateTimeFormatter.ISO_DATE)

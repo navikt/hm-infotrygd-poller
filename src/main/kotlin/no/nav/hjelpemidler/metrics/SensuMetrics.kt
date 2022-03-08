@@ -10,7 +10,7 @@ import java.net.http.HttpRequest
 import java.net.http.HttpResponse
 import java.time.Duration
 import java.time.LocalDateTime
-import java.util.*
+import java.util.UUID
 import java.util.concurrent.TimeUnit
 
 class SensuMetrics(messageContext: MessageContext) {
@@ -65,7 +65,7 @@ class SensuMetrics(messageContext: MessageContext) {
     }
 
     private fun registerPoint(measurement: String, fields: Map<String, Any>, tags: Map<String, String>) {
-        log.info("Posting point to Influx: measurment {} fields {} tags {} ", measurement, fields, tags)
+        log.info("Posting point to Influx: measurement {} fields {} tags {} ", measurement, fields, tags)
         val point = Point.measurement(measurement)
             .time(TimeUnit.MILLISECONDS.toNanos(System.currentTimeMillis()), TimeUnit.NANOSECONDS)
             .tag(tags)

@@ -21,10 +21,10 @@ import java.net.InetAddress
 import java.time.Duration
 import java.time.LocalDate
 import java.time.LocalDateTime
-import java.util.*
+import java.util.UUID
 import kotlin.concurrent.thread
-import kotlin.time.*
 import kotlin.time.Duration.Companion.minutes
+import kotlin.time.ExperimentalTime
 
 private val logg = KotlinLogging.logger {}
 // private val sikkerlogg = KotlinLogging.logger("tjenestekall")
@@ -44,8 +44,7 @@ fun main() {
     val store = PollListStorePostgres(dataSource())
 
     // Define our rapid and rivers app
-    var rapidApp: RapidsConnection?
-    rapidApp = RapidApplication.Builder(
+    val rapidApp: RapidsConnection = RapidApplication.Builder(
         RapidApplication.RapidApplicationConfig(
             Configuration.rapidConfig["RAPID_APP_NAME"],
             InetAddress.getLocalHost().hostName,
@@ -74,7 +73,7 @@ fun main() {
         if (Configuration.application["APP_PROFILE"] != "prod") LoggRiver(this)
         InfotrygdAddToPollVedtakListRiver(this, store)
     }
-    
+
     val metrics = SensuMetrics(rapidApp)
 
     // Run background daemon for polling Infotrygd
@@ -173,7 +172,8 @@ fun main() {
                                         UUID.fromString(result.req.id),
                                         mockVedtaksresultat,
                                         LocalDate.now(),
-                                        result.req.fnr
+                                        result.req.fnr,
+                                        result.req.tknr,
                                     )
                                 )
                             )
@@ -232,7 +232,8 @@ fun main() {
                                     UUID.fromString(result.req.id),
                                     result.vedtaksResult!!,
                                     result.vedtaksDate,
-                                    result.req.fnr
+                                    result.req.fnr,
+                                    result.req.tknr,
                                 )
                             )
                         )
@@ -315,4 +316,6 @@ data class VedtakResultat(
     val vedtaksDato: LocalDate,
     @JsonProperty("fnrBruker")
     val fnrBruker: String,
+    @JsonProperty("trygdekontorNr")
+    val trygdekontorNr: String,
 )
