@@ -157,7 +157,7 @@ fun main() {
 
                 for (result in results) {
                     if (Configuration.application["APP_PROFILE"] == "dev") {
-                        val mockVedtaksresultat = "HB"
+                        val mockVedtaksresultat = "IM"
 
                         // NOTE: Mocking out answer due to dev having a static database
                         avgQueryTimeElapsed_counter += result.queryTimeElapsedMs
