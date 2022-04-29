@@ -126,7 +126,7 @@ internal class PollListStorePostgres(private val ds: DataSource) : PollListStore
                 CREATED
             FROM public.V1_POLL_LIST
             WHERE (
-                LAST_POLL IS NULL
+                (LAST_POLL IS NULL AND CREATED + '10 minutes'::interval < NOW())
                 OR
                 LAST_POLL <= NOW() - '60 minutes'::interval
             ) AND LENGTH(TKNR) = 4
