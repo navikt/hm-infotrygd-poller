@@ -112,6 +112,8 @@ internal class PollListStorePostgres(private val ds: DataSource) : PollListStore
     }
 
     override fun getPollingBatch(size: Int): List<Poll> {
+        // FIXME: condition below "AND LENGTH(TKNR) = 4" is so that we stop spamming errors while I investigate why our
+        //  legacy code integration started intermittently misbehaving a few days ago
         @Language("PostgreSQL") val statement = """
             SELECT
                 SOKNADS_ID,
@@ -127,7 +129,7 @@ internal class PollListStorePostgres(private val ds: DataSource) : PollListStore
                 LAST_POLL IS NULL
                 OR
                 LAST_POLL <= NOW() - '60 minutes'::interval
-            )
+            ) AND LENGTH(TKNR) = 4
             ORDER BY LAST_POLL ASC NULLS FIRST
             LIMIT $size
         """.trimIndent().split("\n").joinToString(" ")
