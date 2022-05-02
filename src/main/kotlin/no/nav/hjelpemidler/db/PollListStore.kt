@@ -129,7 +129,7 @@ internal class PollListStorePostgres(private val ds: DataSource) : PollListStore
                 (LAST_POLL IS NULL AND CREATED + '10 minutes'::interval < NOW())
                 OR
                 LAST_POLL <= NOW() - '60 minutes'::interval
-            ) AND LENGTH(TKNR) = 4
+            ) -- AND LENGTH(TKNR) = 4
             ORDER BY LAST_POLL ASC NULLS FIRST
             LIMIT $size
         """.trimIndent().split("\n").joinToString(" ")
