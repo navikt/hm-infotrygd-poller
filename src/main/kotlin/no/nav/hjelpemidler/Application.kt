@@ -209,6 +209,8 @@ fun main() {
                         continue
                     }
 
+                    logg.info("debug: soknadsType=${result.soknadsType}")
+
                     // Make the result available to the rest of the infrastructure some time after 06:00 the following
                     // day after the decision is made. This allows caseworkers to fix mistakes within the same day.
                     val waitUntil = result.vedtaksDate!!.plusDays(1).atTime(6, 0, 0)
