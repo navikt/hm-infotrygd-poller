@@ -63,7 +63,8 @@ internal class InfotrygdServiceTest {
             "I",
             expectedDate,
             "10127622634",
-            ""
+            "",
+            "",
         ))
 
         val contains = expectedDate.format(DateTimeFormatter.ISO_DATE)
@@ -91,9 +92,9 @@ internal class InfotrygdServiceTest {
         val now = LocalDateTime.of(2021, 11, 1, 6, 5, 32)
 
         val results = listOf(
-            Infotrygd.Response(Infotrygd.Request("", "", "", "", ""), "I", LocalDate.of(2021, 10, 31), "", 1.0),
-            Infotrygd.Response(Infotrygd.Request("", "", "", "", ""), "A", LocalDate.of(2021, 11, 1), "", 1.0),
-            Infotrygd.Response(Infotrygd.Request("", "", "", "", ""), "DI", LocalDate.of(2021, 11, 2), "", 1.0),
+            Infotrygd.Response(Infotrygd.Request("", "", "", "", ""), "I", LocalDate.of(2021, 10, 31), "", "", 1.0),
+            Infotrygd.Response(Infotrygd.Request("", "", "", "", ""), "A", LocalDate.of(2021, 11, 1), "", "", 1.0),
+            Infotrygd.Response(Infotrygd.Request("", "", "", "", ""), "DI", LocalDate.of(2021, 11, 2), "", "", 1.0),
         )
 
         for (result in results) {

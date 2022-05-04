@@ -3,7 +3,9 @@ package no.nav.hjelpemidler.service.infotrygdproxy
 import com.beust.klaxon.Klaxon
 import com.fasterxml.jackson.annotation.JsonFormat
 import com.fasterxml.jackson.annotation.JsonProperty
+import com.fasterxml.jackson.databind.DeserializationFeature
 import com.fasterxml.jackson.databind.ObjectMapper
+import com.fasterxml.jackson.databind.SerializationFeature
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule
 import com.fasterxml.jackson.datatype.jsr310.deser.LocalDateDeserializer
@@ -41,6 +43,8 @@ class Infotrygd {
 
     init {
         mapper.registerModule(JavaTimeModule())
+            .disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES)
+            .disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS)
     }
 
     fun batchQueryVedtakResultat(reqs: List<Request>): List<Response> {
@@ -119,6 +123,9 @@ class Infotrygd {
         @JsonFormat(shape = JsonFormat.Shape.STRING)
         @JsonProperty("vedtaksDate")
         val vedtaksDate: LocalDate? = null, // null initialization required for Klaxon deserialization if not mentioned in response (due to null)
+
+        @JsonProperty("soknadsType")
+        val soknadsType: String? = null, // null initialization required for Klaxon deserialization if not mentioned in response (due to null)
 
         @JsonProperty("error")
         val error: String? = null, // null initialization required for Klaxon deserialization if not mentioned in response (due to null)

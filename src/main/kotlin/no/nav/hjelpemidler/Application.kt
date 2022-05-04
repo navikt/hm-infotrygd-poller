@@ -174,6 +174,7 @@ fun main() {
                                         LocalDate.now(),
                                         result.req.fnr,
                                         result.req.tknr,
+                                        result.soknadsType ?: "",
                                     )
                                 )
                             )
@@ -234,9 +235,11 @@ fun main() {
                                     result.vedtaksDate,
                                     result.req.fnr,
                                     result.req.tknr,
+                                    result.soknadsType ?: "",
                                 )
                             )
                         )
+                        logg.info("Sent vedtaksresultat to rapid with soknadsType=${result.soknadsType}")
                         metrics.meldingTilRapidSuksess()
                     } catch (e: Exception) {
                         logg.error("error: sending hm-VedtaksResultatFraInfotrygd to rapid failed: $e")
@@ -318,4 +321,6 @@ data class VedtakResultat(
     val fnrBruker: String,
     @JsonProperty("trygdekontorNr")
     val trygdekontorNr: String,
+    @JsonProperty("soknadsType")
+    val soknadsType: String,
 )
