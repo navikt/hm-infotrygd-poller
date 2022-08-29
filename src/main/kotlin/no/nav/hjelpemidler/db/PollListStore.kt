@@ -126,7 +126,9 @@ internal class PollListStorePostgres(private val ds: DataSource) : PollListStore
             WHERE (
                 (LAST_POLL IS NULL AND CREATED + '10 minutes'::interval < NOW())
                 OR
-                LAST_POLL <= NOW() - '60 minutes'::interval
+                (NUMBER_OF_POLLINGS <= 720 AND LAST_POLL <= NOW() - '60 minutes'::interval)
+                OR
+                (NUMBER_OF_POLLINGS > 720 AND LAST_POLL <= NOW() - '24 hours'::interval)
             )
             ORDER BY LAST_POLL ASC NULLS FIRST
             LIMIT $size
