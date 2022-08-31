@@ -17,6 +17,7 @@ internal object Configuration {
             "kafka.aiven.topic" to "teamdigihot.hm-soknadsbehandling-v1",
             "kafka.reset.policy" to "latest",
             "kafka.client.id" to "hm-infotrygd-poller-prod",
+            "kafka.consumer.id" to "hm-infotrygd-poller-v1",
 
             "application.profile" to "prod",
             "SENSU_URL" to "https://digihot-proxy.prod-fss-pub.nais.io/sensu",
@@ -33,6 +34,7 @@ internal object Configuration {
             "kafka.aiven.topic" to "teamdigihot.hm-soknadsbehandling-v1",
             "kafka.reset.policy" to "latest",
             "kafka.client.id" to "hm-infotrygd-poller-dev",
+            "kafka.consumer.id" to "hm-infotrygd-poller-v2",
 
             "application.profile" to "dev",
             "SENSU_URL" to "https://digihot-proxy.dev-fss-pub.nais.io/sensu",
@@ -56,6 +58,7 @@ internal object Configuration {
             "kafka.brokers" to "host.docker.internal:9092",
             "kafka.client.id" to "hm-infotrygd-poller-local",
             "kafka.aiven.topic" to "teamdigihot.hm-soknadsbehandling-v1",
+            "kafka.consumer.id" to "hm-infotrygd-poller-v1",
 
             "application.profile" to "local",
             "SENSU_URL" to "http://localhost:8456/sensu", // hm-soknad-api WireMock endpoint
@@ -80,7 +83,7 @@ internal object Configuration {
         "RAPID_KAFKA_CLUSTER" to "gcp",
         "RAPID_APP_NAME" to "hm-infotrygd-poller",
         "KAFKA_BROKERS" to config()[Key("kafka.brokers", stringType)],
-        "KAFKA_CONSUMER_GROUP_ID" to "hm-infotrygd-poller-v1",
+        "KAFKA_CONSUMER_GROUP_ID" to config()[Key("kafka.consumer.id", stringType)],
         "KAFKA_RAPID_TOPIC" to config()[Key("kafka.aiven.topic", stringType)],
         "KAFKA_RESET_POLICY" to config()[Key("kafka.reset.policy", stringType)],
         "KAFKA_TRUSTSTORE_PATH" to config()[Key("KAFKA_TRUSTSTORE_PATH", stringType)],
