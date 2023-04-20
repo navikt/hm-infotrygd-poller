@@ -27,8 +27,8 @@ internal class InfotrygdServiceTest {
             {
                 "req": {
                     "id": "c8a92a89-dedd-42b2-a977-1447bcc2a121",
-                    "fnr": "07010589518",
-                    "tknr": "2103",
+                    "fnr": "12345678910",
+                    "tknr": "1000",
                     "saksblokk": "A",
                     "saksnr": "04"
                 },
@@ -42,8 +42,8 @@ internal class InfotrygdServiceTest {
         println(mapper.writeValueAsString(result))
 
         assertEquals("c8a92a89-dedd-42b2-a977-1447bcc2a121", result.req.id)
-        assertEquals("07010589518", result.req.fnr)
-        assertEquals("2103", result.req.tknr)
+        assertEquals("12345678910", result.req.fnr)
+        assertEquals("1000", result.req.tknr)
         assertEquals("A", result.req.saksblokk)
         assertEquals("04", result.req.saksnr)
         assertEquals("IM", result.vedtaksResult)
