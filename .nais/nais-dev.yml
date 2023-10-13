@@ -21,6 +21,8 @@ spec:
     requests:
       cpu: 200m
       memory: 600Mi
+  envFrom:
+    - secret: hm-influxdb-secret
   secureLogs:
     enabled: true
   liveness:

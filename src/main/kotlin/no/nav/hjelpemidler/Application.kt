@@ -13,7 +13,8 @@ import no.nav.hjelpemidler.db.PollListStorePostgres
 import no.nav.hjelpemidler.db.dataSource
 import no.nav.hjelpemidler.db.migrate
 import no.nav.hjelpemidler.db.waitForDB
-import no.nav.hjelpemidler.metrics.SensuMetrics
+import no.nav.hjelpemidler.metrics.InfluxClient
+import no.nav.hjelpemidler.metrics.Metrics
 import no.nav.hjelpemidler.rivers.InfotrygdAddToPollVedtakListRiver
 import no.nav.hjelpemidler.rivers.LoggRiver
 import no.nav.hjelpemidler.service.infotrygdproxy.Infotrygd
@@ -74,7 +75,8 @@ fun main() {
         InfotrygdAddToPollVedtakListRiver(this, store)
     }
 
-    val metrics = SensuMetrics(rapidApp)
+    val influxClient = InfluxClient()
+    val metrics = Metrics(influxClient, rapidApp)
 
     // Run background daemon for polling Infotrygd
     thread(isDaemon = true) {

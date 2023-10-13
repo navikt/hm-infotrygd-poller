@@ -20,7 +20,6 @@ internal object Configuration {
             "kafka.consumer.id" to "hm-infotrygd-poller-v1",
 
             "application.profile" to "prod",
-            "SENSU_URL" to "https://digihot-proxy.prod-fss-pub.nais.io/sensu",
 
             "AZURE_TENANT_BASEURL" to "https://login.microsoftonline.com",
             "AZURE_AD_SCOPE" to "api://prod-fss.teamdigihot.hm-infotrygd-proxy/.default",
@@ -37,7 +36,6 @@ internal object Configuration {
             "kafka.consumer.id" to "hm-infotrygd-poller-v2",
 
             "application.profile" to "dev",
-            "SENSU_URL" to "https://digihot-proxy.dev-fss-pub.nais.io/sensu",
 
             "AZURE_TENANT_BASEURL" to "https://login.microsoftonline.com",
             "AZURE_AD_SCOPE" to "api://dev-fss.teamdigihot.hm-infotrygd-proxy/.default",
@@ -61,7 +59,6 @@ internal object Configuration {
             "kafka.consumer.id" to "hm-infotrygd-poller-v1",
 
             "application.profile" to "local",
-            "SENSU_URL" to "http://localhost:8456/sensu", // hm-soknad-api WireMock endpoint
 
             "AZURE_TENANT_BASEURL" to "http://localhost:9099",
             "AZURE_APP_TENANT_ID" to "123",
@@ -76,6 +73,12 @@ internal object Configuration {
             "DB_DATABASE" to "abc",
             "DB_USERNAME" to "abc",
             "DB_PASSWORD" to "abc",
+
+            "INFLUX_HOST" to "abc",
+            "INFLUX_PORT" to "123",
+            "INFLUX_DATABASE_NAME" to "abc",
+            "INFLUX_USER" to "abc",
+            "INFLUX_PASSWORD" to "abc",
         )
     )
 
@@ -111,6 +114,14 @@ internal object Configuration {
         "DB_DATABASE" to config()[Key("DB_DATABASE", stringType)],
         "DB_USERNAME" to config()[Key("DB_USERNAME", stringType)],
         "DB_PASSWORD" to config()[Key("DB_PASSWORD", stringType)],
+    )
+
+    val influx: Map<String, String> = mapOf(
+        "INFLUX_HOST" to config()[Key("INFLUX_HOST", stringType)],
+        "INFLUX_PORT" to config()[Key("INFLUX_PORT", stringType)],
+        "INFLUX_DATABASE_NAME" to config()[Key("INFLUX_DATABASE_NAME", stringType)],
+        "INFLUX_USER" to config()[Key("INFLUX_USER", stringType)],
+        "INFLUX_PASSWORD" to config()[Key("INFLUX_PASSWORD", stringType)],
     )
 
     val application: Map<String, String> = mapOf(

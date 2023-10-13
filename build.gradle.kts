@@ -1,13 +1,14 @@
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
 plugins {
-    kotlin("jvm") version "1.6.10"
+    kotlin("jvm") version "1.8.0"
 }
 val rapid_version: String by project
 val kotlin_logging_version: String by project
 val konfig_version: String by project
 val kafka_version: String by project
 val influxdb_version: String by project
+val influxdb_kotlin_version: String by project
 val klaxon_version: String by project
 val ojdbc_version: String by project
 val postgres_version: String by project
@@ -32,12 +33,14 @@ dependencies {
     implementation("com.natpryce:konfig:$konfig_version")
     implementation("org.apache.kafka:kafka-clients:$kafka_version")
     implementation("org.influxdb:influxdb-java:$influxdb_version")
+    implementation("com.influxdb:influxdb-client-kotlin:$influxdb_kotlin_version")
     implementation("com.beust:klaxon:$klaxon_version")
     implementation("com.oracle.database.jdbc:ojdbc8:$ojdbc_version")
     implementation("org.postgresql:postgresql:$postgres_version")
     implementation("com.zaxxer:HikariCP:$hikari_version")
     implementation("org.flywaydb:flyway-core:$flyway_version")
     implementation("com.github.seratch:kotliquery:$kotliquery_version")
+
 }
 
 tasks.withType<KotlinCompile> {
