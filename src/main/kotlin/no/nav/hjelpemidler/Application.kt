@@ -93,11 +93,11 @@ fun main() {
                 val list = store.getPollingBatch(100)
                 if (list.isEmpty()) continue
 
-                // Report total size of poll list to sensu
+                // Report total size of poll list
                 val pollListSize = store.getPollListSize()
                 if (pollListSize != null) metrics.pollListSize(pollListSize)
 
-                // Report batch size we are polling to sensu
+                // Report batch size we are polling
                 metrics.batchSize(list.size)
 
                 logg.info("Batch processing starting (size: ${list.size})")
@@ -287,7 +287,7 @@ fun main() {
                     logg.info("getOldestInPollList returned null")
                 }
 
-                // Report total size of poll list to sensu after results have come in
+                // Report total size of poll list after results have come in
                 val pollListSize2 = store.getPollListSize()
                 if (pollListSize2 != null && pollListSize2 != pollListSize) {
                     metrics.pollListSize(pollListSize2)

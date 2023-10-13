@@ -126,7 +126,6 @@ internal object Configuration {
 
     val application: Map<String, String> = mapOf(
         "APP_PROFILE" to config()[Key("application.profile", stringType)],
-        "SENSU_URL" to config()[Key("SENSU_URL", stringType)],
     ) + System.getenv().filter { it.key.startsWith("NAIS_") }
 
 }
