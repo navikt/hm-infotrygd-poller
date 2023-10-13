@@ -36,7 +36,6 @@ spec:
     outbound:
       external:
         - host: hm-infotrygd-proxy.prod-fss-pub.nais.io
-        - host: digihot-proxy.prod-fss-pub.nais.io
   gcp:
     sqlInstances:
       - name: hm-infotrygd-poller-db-prod
