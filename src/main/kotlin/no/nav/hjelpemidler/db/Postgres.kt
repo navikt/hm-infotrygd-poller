@@ -22,7 +22,7 @@ internal fun waitForDB(timeout: Duration): Boolean {
             return true
         } catch (e: Exception) {
             logg.info("Database not available yet, waiting...")
-            Thread.sleep(1000*2)
+            Thread.sleep(1000 * 2)
         }
         if (LocalDateTime.now().isAfter(deadline)) break
     }

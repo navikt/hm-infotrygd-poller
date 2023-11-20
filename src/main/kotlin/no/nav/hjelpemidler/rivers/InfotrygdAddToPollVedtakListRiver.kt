@@ -6,7 +6,7 @@ import no.nav.helse.rapids_rivers.MessageContext
 import no.nav.helse.rapids_rivers.RapidsConnection
 import no.nav.helse.rapids_rivers.River
 import no.nav.hjelpemidler.db.PollListStore
-import java.util.*
+import java.util.UUID
 
 private val logg = KotlinLogging.logger {}
 private val sikkerlogg = KotlinLogging.logger("tjenestekall")
@@ -18,8 +18,8 @@ internal class InfotrygdAddToPollVedtakListRiver(
 
     init {
         River(rapidsConnection).apply {
-            this.validate{ it.demandValue("eventName", "hm-InfotrygdAddToPollVedtakList") }
-            this.validate{ it.requireKey("søknadId", "fnrBruker", "trygdekontorNr", "saksblokk", "saksnr") }
+            this.validate { it.demandValue("eventName", "hm-InfotrygdAddToPollVedtakList") }
+            this.validate { it.requireKey("søknadId", "fnrBruker", "trygdekontorNr", "saksblokk", "saksnr") }
         }.register(this)
     }
 

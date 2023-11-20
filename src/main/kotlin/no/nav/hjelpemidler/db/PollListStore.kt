@@ -6,7 +6,7 @@ import kotliquery.using
 import mu.KotlinLogging
 import org.intellij.lang.annotations.Language
 import java.time.LocalDateTime
-import java.util.*
+import java.util.UUID
 import javax.sql.DataSource
 
 private val logg = KotlinLogging.logger {}

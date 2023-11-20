@@ -2,7 +2,6 @@ package no.nav.hjelpemidler.service.azure
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import mu.KotlinLogging
-import no.nav.hjelpemidler.configuration.Configuration
 import java.io.InputStream
 import java.net.HttpURLConnection
 import java.net.URL

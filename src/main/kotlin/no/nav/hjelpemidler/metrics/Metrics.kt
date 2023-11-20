@@ -59,7 +59,6 @@ class Metrics(
         } catch (e: Exception) {
             log.warn("Sending av metrics feilet.", e)
         }
-
     }
 
     companion object {

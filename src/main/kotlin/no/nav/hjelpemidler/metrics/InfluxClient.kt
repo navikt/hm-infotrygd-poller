@@ -7,7 +7,7 @@ import no.nav.hjelpemidler.configuration.Configuration
 import java.time.Instant
 
 class InfluxClient(
-    host: String = Configuration.influx["INFLUX_HOST"]!! ,
+    host: String = Configuration.influx["INFLUX_HOST"]!!,
     port: String = Configuration.influx["INFLUX_PORT"]!!,
     user: String = Configuration.influx["INFLUX_USER"]!!,
     password: String = Configuration.influx["INFLUX_PASSWORD"]!!,
@@ -37,4 +37,3 @@ class InfluxClient(
         "namespace" to (Configuration.application["NAIS_NAMESPACE"] ?: "teamdigihot")
     )
 }
-

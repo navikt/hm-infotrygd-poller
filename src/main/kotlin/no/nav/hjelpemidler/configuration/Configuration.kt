@@ -1,6 +1,11 @@
 package no.nav.hjelpemidler.configuration
 
-import com.natpryce.konfig.*
+import com.natpryce.konfig.ConfigurationMap
+import com.natpryce.konfig.ConfigurationProperties
+import com.natpryce.konfig.EnvironmentVariables
+import com.natpryce.konfig.Key
+import com.natpryce.konfig.overriding
+import com.natpryce.konfig.stringType
 
 internal object Configuration {
 
@@ -127,5 +132,4 @@ internal object Configuration {
     val application: Map<String, String> = mapOf(
         "APP_PROFILE" to config()[Key("application.profile", stringType)],
     ) + System.getenv().filter { it.key.startsWith("NAIS_") }
-
 }

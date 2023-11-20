@@ -5,11 +5,10 @@ import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule
 import com.fasterxml.jackson.module.kotlin.readValue
 import mu.KotlinLogging
 import no.nav.hjelpemidler.VedtakResultat
-import okhttp3.internal.wait
 import java.time.LocalDate
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
-import java.util.*
+import java.util.UUID
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertTrue
@@ -23,7 +22,8 @@ internal class InfotrygdServiceTest {
     fun `Parse vedtaksdato to LocalDate`() {
         val mapper = ObjectMapper().registerModule(JavaTimeModule())
 
-        val result: Infotrygd.Response = mapper.readValue("""
+        val result: Infotrygd.Response = mapper.readValue(
+            """
             {
                 "req": {
                     "id": "c8a92a89-dedd-42b2-a977-1447bcc2a121",
@@ -36,7 +36,8 @@ internal class InfotrygdServiceTest {
                 "vedtaksDate": "2021-03-23",
                 "queryTimeElapsedMs": 1.480892
             }
-        """.trimIndent())
+            """.trimIndent()
+        )
 
         println(result)
         println(mapper.writeValueAsString(result))
@@ -57,20 +58,22 @@ internal class InfotrygdServiceTest {
         val mapper = ObjectMapper().registerModule(JavaTimeModule())
 
         val expectedDate = LocalDate.now()
-        val rawJson = mapper.writeValueAsString(VedtakResultat(
-            "abc",
-            UUID.randomUUID(),
-            "I",
-            expectedDate,
-            "10127622634",
-            "",
-            "",
-        ))
+        val rawJson = mapper.writeValueAsString(
+            VedtakResultat(
+                "abc",
+                UUID.randomUUID(),
+                "I",
+                expectedDate,
+                "10127622634",
+                "",
+                "",
+            )
+        )
 
         val contains = expectedDate.format(DateTimeFormatter.ISO_DATE)
 
-        //println(rawJson)
-        //println(contains)
+        // println(rawJson)
+        // println(contains)
 
         assertTrue(rawJson.contains(contains))
     }
@@ -115,5 +118,4 @@ internal class InfotrygdServiceTest {
             )
         }
     }
-
 }

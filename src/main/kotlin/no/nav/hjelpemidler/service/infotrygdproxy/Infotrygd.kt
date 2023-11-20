@@ -1,6 +1,5 @@
 package no.nav.hjelpemidler.service.infotrygdproxy
 
-import com.beust.klaxon.Klaxon
 import com.fasterxml.jackson.annotation.JsonFormat
 import com.fasterxml.jackson.annotation.JsonProperty
 import com.fasterxml.jackson.databind.DeserializationFeature
@@ -8,8 +7,6 @@ import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.databind.SerializationFeature
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule
-import com.fasterxml.jackson.datatype.jsr310.deser.LocalDateDeserializer
-import com.fasterxml.jackson.datatype.jsr310.deser.LocalDateTimeDeserializer
 import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import com.fasterxml.jackson.module.kotlin.readValue
 import mu.KotlinLogging
@@ -21,7 +18,7 @@ import java.net.http.HttpRequest
 import java.net.http.HttpResponse
 import java.time.LocalDate
 import java.time.LocalDateTime
-import java.util.*
+import java.util.UUID
 import kotlin.time.Duration
 import kotlin.time.DurationUnit
 import kotlin.time.ExperimentalTime
@@ -90,8 +87,11 @@ class Infotrygd {
             results = mapper.readValue(jsonResp)
         }
 
-        if (Configuration.application["APP_PROFILE"] != "prod") logg.info("DEBUG: Response received from infotrygd: $results. Total request time elapsed: ${elapsed.toDouble(
-            DurationUnit.MILLISECONDS)}")
+        if (Configuration.application["APP_PROFILE"] != "prod") logg.info(
+            "DEBUG: Response received from infotrygd: $results. Total request time elapsed: ${elapsed.toDouble(
+                DurationUnit.MILLISECONDS
+            )}"
+        )
 
         return results!!.toList()
     }
