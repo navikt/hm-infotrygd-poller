@@ -6,7 +6,7 @@ val influxdb_version = "2.23"
 val influxdb_kotlin_version = "6.10.0"
 val klaxon_version = "5.5"
 val ojdbc_version = "21.1.0.0"
-val postgres_version = "42.3.3"
+val postgres_version = "42.3.8"
 val hikari_version = "5.0.1"
 val flyway_version = "8.5.2"
 val kotliquery_version = "1.6.1"
@@ -32,7 +32,6 @@ dependencies {
     implementation("com.github.navikt:rapids-and-rivers:$rapid_version")
     implementation("io.github.microutils:kotlin-logging:$kotlin_logging_version")
     implementation("com.natpryce:konfig:$konfig_version")
-    // implementation("org.apache.kafka:kafka-clients:$kafka_version")
     implementation("org.influxdb:influxdb-java:$influxdb_version")
     implementation("com.influxdb:influxdb-client-kotlin:$influxdb_kotlin_version")
     implementation("com.beust:klaxon:$klaxon_version")
