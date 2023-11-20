@@ -13,10 +13,10 @@ on:
 jobs:
   build:
     name: Build app, docker image and  push docker image
+    runs-on: ubuntu-latest
     permissions:
       contents: write
       id-token: write
-    runs-on: ubuntu-latest
 
     steps:
       - name: Checkout code
