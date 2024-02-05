@@ -39,7 +39,7 @@ spec:
   gcp:
     sqlInstances:
       - name: hm-infotrygd-poller-db-prod
-        type: POSTGRES_12
+        type: POSTGRES_15
         tier: db-g1-small
         diskType: SSD
         highAvailability: true
