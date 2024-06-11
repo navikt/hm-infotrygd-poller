@@ -1,9 +1,9 @@
 package no.nav.hjelpemidler.db
 
+import io.github.oshai.kotlinlogging.KotlinLogging
 import kotliquery.queryOf
 import kotliquery.sessionOf
 import kotliquery.using
-import mu.KotlinLogging
 import org.intellij.lang.annotations.Language
 import java.time.LocalDateTime
 import java.util.UUID
@@ -52,13 +52,14 @@ internal class PollListStorePostgres(private val ds: DataSource) : PollListStore
                         trygdekontorNr,
                         saksblokk,
                         saksnr,
-                    ).asUpdate
+                    ).asUpdate,
                 )
             }
         }
 
     override fun remove(søknadId: UUID) {
-        @Language("PostgreSQL") val statement = """
+        @Language("PostgreSQL")
+        val statement = """
             DELETE FROM public.V1_POLL_LIST
             WHERE SOKNADS_ID = ?
         """.trimIndent().split("\n").joinToString(" ")
@@ -69,14 +70,15 @@ internal class PollListStorePostgres(private val ds: DataSource) : PollListStore
                     queryOf(
                         statement,
                         søknadId,
-                    ).asExecute
+                    ).asExecute,
                 )
             }
         }
     }
 
     override fun getPollListSize(): Int? {
-        @Language("PostgreSQL") val statement = """
+        @Language("PostgreSQL")
+        val statement = """
             SELECT count(*) AS count FROM public.V1_POLL_LIST
         """.trimIndent().split("\n").joinToString(" ")
 
@@ -87,14 +89,15 @@ internal class PollListStorePostgres(private val ds: DataSource) : PollListStore
                         statement,
                     ).map {
                         it.int("count")
-                    }.asSingle
+                    }.asSingle,
                 )
             }
         }
     }
 
     override fun getOldestInPollList(): LocalDateTime? {
-        @Language("PostgreSQL") val statement = """
+        @Language("PostgreSQL")
+        val statement = """
             SELECT MIN(CREATED) as CREATED FROM public.V1_POLL_LIST
         """.trimIndent().split("\n").joinToString(" ")
 
@@ -105,14 +108,15 @@ internal class PollListStorePostgres(private val ds: DataSource) : PollListStore
                         statement,
                     ).map {
                         it.localDateTimeOrNull("CREATED")
-                    }.asSingle
+                    }.asSingle,
                 )
             }
         }
     }
 
     override fun getPollingBatch(size: Int): List<Poll> {
-        @Language("PostgreSQL") val statement = """
+        @Language("PostgreSQL")
+        val statement = """
             SELECT
                 SOKNADS_ID,
                 FNR_BRUKER,
@@ -150,7 +154,7 @@ internal class PollListStorePostgres(private val ds: DataSource) : PollListStore
                             it.localDateTimeOrNull("LAST_POLL"),
                             it.localDateTimeOrNull("CREATED"),
                         )
-                    }.asList
+                    }.asList,
                 )
             }
         }
@@ -163,7 +167,8 @@ internal class PollListStorePostgres(private val ds: DataSource) : PollListStore
             søknadsIDs.add("'${poll.søknadID}'")
         }
 
-        @Language("PostgreSQL") val statement = """
+        @Language("PostgreSQL")
+        val statement = """
             UPDATE public.V1_POLL_LIST
             SET
                 NUMBER_OF_POLLINGS = NUMBER_OF_POLLINGS + 1,
@@ -176,7 +181,7 @@ internal class PollListStorePostgres(private val ds: DataSource) : PollListStore
                 session.run(
                     queryOf(
                         statement,
-                    ).asUpdate
+                    ).asUpdate,
                 )
             }
         }

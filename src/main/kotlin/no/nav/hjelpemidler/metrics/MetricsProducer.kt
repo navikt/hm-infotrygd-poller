@@ -3,7 +3,7 @@ package no.nav.hjelpemidler.metrics
 import com.fasterxml.jackson.databind.SerializationFeature
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule
 import com.fasterxml.jackson.module.kotlin.jacksonMapperBuilder
-import mu.KotlinLogging
+import io.github.oshai.kotlinlogging.KotlinLogging
 import no.nav.helse.rapids_rivers.MessageContext
 import java.time.LocalDateTime
 import java.util.UUID
@@ -36,10 +36,10 @@ class MetricsProducer(
                         "kilde" to "hm-infotrygd-poller",
                         "data" to fields.mapValues { it.value.toString() }
                             .plus(tags)
-                            .filterKeys { it != "counter" }
-                    )
-                )
-            )
+                            .filterKeys { it != "counter" },
+                    ),
+                ),
+            ),
         )
     }
 }

@@ -1,6 +1,6 @@
 package no.nav.hjelpemidler.rivers
 
-import mu.KotlinLogging
+import io.github.oshai.kotlinlogging.KotlinLogging
 import no.nav.helse.rapids_rivers.JsonMessage
 import no.nav.helse.rapids_rivers.MessageContext
 import no.nav.helse.rapids_rivers.RapidsConnection
@@ -34,12 +34,12 @@ internal class InfotrygdAddToPollVedtakListRiver(
             store.add(søknadId, fnrBruker, trygdekontorNr, saksblokk, saksnr)
         }.onSuccess {
             if (it > 0) {
-                logg.info("La til søknad i listen for polling i Infotrygd: søknadsID=$søknadId")
+                logg.info { "La til søknad i listen for polling i Infotrygd: søknadId: $søknadId" }
             } else {
-                logg.warn("Feilet i å legge inn søknad i polling liste, kanskje den allerede er i listen(?): søknadsID=$søknadId")
+                logg.warn { "Feilet i å legge inn søknad i polling liste, kanskje den allerede er i listen(?), søknadId: $søknadId" }
             }
         }.onFailure {
-            logg.error("Failed i å legge søknad inn i polling listen: søknadsID=$søknadId")
+            logg.error { "Feilet i å legge søknad inn i polling listen: søknadId: $søknadId" }
         }.getOrThrow()
     }
 }

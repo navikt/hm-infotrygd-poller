@@ -4,8 +4,7 @@ import com.fasterxml.jackson.annotation.JsonFormat
 import com.fasterxml.jackson.annotation.JsonProperty
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule
 import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
-import mu.KotlinLogging
-import no.nav.helse.rapids_rivers.KafkaConfig
+import io.github.oshai.kotlinlogging.KotlinLogging
 import no.nav.helse.rapids_rivers.RapidApplication
 import no.nav.helse.rapids_rivers.RapidsConnection
 import no.nav.hjelpemidler.configuration.Configuration
@@ -18,7 +17,6 @@ import no.nav.hjelpemidler.metrics.Metrics
 import no.nav.hjelpemidler.rivers.InfotrygdAddToPollVedtakListRiver
 import no.nav.hjelpemidler.rivers.LoggRiver
 import no.nav.hjelpemidler.service.infotrygdproxy.Infotrygd
-import java.net.InetAddress
 import java.time.Duration
 import java.time.LocalDate
 import java.time.LocalDateTime
@@ -34,7 +32,7 @@ private val mapper = jacksonObjectMapper().registerModule(JavaTimeModule())
 @ExperimentalTime
 fun main() {
     if (!waitForDB(10.minutes)) {
-        throw Exception("database never became available withing the deadline")
+        error("Databasen ble ikke tilgjengelig innen 10 minutter")
     }
 
     // Make sure our database migrations are up to date
@@ -44,32 +42,7 @@ fun main() {
     val store = PollListStorePostgres(dataSource())
 
     // Define our rapid and rivers app
-    val rapidApp: RapidsConnection = RapidApplication.Builder(
-        RapidApplication.RapidApplicationConfig(
-            Configuration.rapidConfig["RAPID_APP_NAME"],
-            InetAddress.getLocalHost().hostName,
-            Configuration.rapidConfig["KAFKA_RAPID_TOPIC"]!!,
-            emptyList(),
-            KafkaConfig(
-                Configuration.rapidConfig["KAFKA_BROKERS"]!!,
-                Configuration.rapidConfig["KAFKA_CONSUMER_GROUP_ID"]!!,
-                Configuration.rapidConfig["KAFKA_CLIENT_ID"]!!,
-                null,
-                null,
-                Configuration.rapidConfig["KAFKA_TRUSTSTORE_PATH"]!!,
-                Configuration.rapidConfig["KAFKA_CREDSTORE_PASSWORD"]!!,
-                "jks",
-                "PKCS12",
-                Configuration.rapidConfig["KAFKA_KEYSTORE_PATH"]!!,
-                Configuration.rapidConfig["KAFKA_CREDSTORE_PASSWORD"]!!,
-                Configuration.rapidConfig["KAFKA_RESET_POLICY"]!!,
-                false,
-                null,
-                null,
-            ),
-            8080,
-        )
-    ).build().apply {
+    val rapidApp: RapidsConnection = RapidApplication.create(System.getenv()).apply {
         if (Configuration.application["APP_PROFILE"] != "prod") LoggRiver(this)
         InfotrygdAddToPollVedtakListRiver(this, store)
     }
@@ -79,7 +52,7 @@ fun main() {
 
     // Run background daemon for polling Infotrygd
     thread(isDaemon = true) {
-        logg.info("Poller daemon starting")
+        logg.info { "Poller daemon starting" }
 
         while (true) {
             // Check every 10s
@@ -91,8 +64,8 @@ fun main() {
                 val list = store.getPollingBatch(100)
                 if (list.isEmpty()) continue
 
-                logg.info("Batch processing starting (size: ${list.size})")
-                if (Configuration.application["APP_PROFILE"] != "prod") logg.debug("DEBUG: Batch: $list")
+                logg.info { "Batch processing starting (size: ${list.size})" }
+                if (Configuration.application["APP_PROFILE"] != "prod") logg.debug { "Batch: $list" }
 
                 val innerList: MutableList<Infotrygd.Request> = mutableListOf()
                 for (poll in list) {
@@ -103,7 +76,7 @@ fun main() {
                             poll.trygdekontorNr,
                             poll.saksblokk,
                             poll.saksnr,
-                        )
+                        ),
                     )
                 }
 
@@ -113,17 +86,21 @@ fun main() {
                 try {
                     results = Infotrygd().batchQueryVedtakResultat(innerList)
                 } catch (e: Exception) {
-                    logg.warn("warn: problem polling Infotrygd, some downtime is expected though (up to 24hrs now and then) so we only warn here: $e")
-                    e.printStackTrace()
+                    logg.warn(e) {
+                        """
+                            Problem polling Infotrygd, some downtime is expected though (up to 24hrs now and then) 
+                            so we only warn here
+                        """.trimIndent()
+                    }
 
-                    logg.warn("warn: sleeping for 1min due to error, before continuing")
+                    logg.warn(e) { "Sleeping for 1 minute due to error, before continuing" }
                     Thread.sleep(1000 * 60)
                     continue
                 }
 
                 if (Configuration.application["APP_PROFILE"] != "prod") {
-                    logg.debug("DEBUG: Infotrygd results:")
-                    for (result in results) logg.debug("DEBUG: - result: $result")
+                    logg.debug { "Infotrygd results:" }
+                    for (result in results) logg.debug { "result: $result" }
                 }
 
                 // We have successfully batch checked for decisions on Vedtaker, now updating
@@ -132,16 +109,16 @@ fun main() {
 
                 // Check for decisions found:
                 var decisionsMade = 0
-                var avgQueryTimeElapsed_counter = 0.0
-                var avgQueryTimeElapsed_total = 0.0
+                var avgQueryTimeElapsedCounter = 0.0
+                var avgQueryTimeElapsedTotal = 0.0
 
                 for (result in results) {
                     if (Configuration.application["APP_PROFILE"] == "dev") {
                         val mockVedtaksresultat = "IM"
 
                         // NOTE: Mocking out answer due to dev having a static database
-                        avgQueryTimeElapsed_counter += result.queryTimeElapsedMs
-                        avgQueryTimeElapsed_total += 1.0
+                        avgQueryTimeElapsedCounter += result.queryTimeElapsedMs
+                        avgQueryTimeElapsedTotal += 1.0
 
                         decisionsMade++
                         try {
@@ -155,53 +132,52 @@ fun main() {
                                         result.req.fnr,
                                         result.req.tknr,
                                         result.soknadsType ?: "",
-                                    )
-                                )
+                                    ),
+                                ),
                             )
                             metrics.meldingTilRapidSuksess()
                         } catch (e: Exception) {
-                            logg.error("error: sending hm-VedtaksResultatFraInfotrygd to rapid failed: $e")
-                            e.printStackTrace()
+                            logg.error(e) { "Sending hm-VedtaksResultatFraInfotrygd to rapid failed" }
                             metrics.meldingTilRapidFeilet()
                             throw e
                         }
 
                         // Metrics on the different possible result types
-                        metrics.vedtaksResultatType(mockVedtaksresultat)
+                        metrics.vedtakResultatType(mockVedtaksresultat)
 
-                        logg.debug("DEBUG: Removing from store: $result")
+                        logg.debug { "Removing from store: $result" }
                         store.remove(UUID.fromString(result.req.id))
 
-                        logg.info("Vedtak decision found for søknadsID=${result.req.id} queryTimeElapsed=${result.queryTimeElapsedMs}ms")
+                        logg.info { "Vedtak decision found for søknadId: ${result.req.id}, queryTimeElapsed: ${result.queryTimeElapsedMs}ms" }
 
                         continue
                     }
 
                     if (result.error != null) {
-                        logg.error("error: decision polling failed with error: ${result.error}")
+                        logg.error { "Decision polling failed with error: ${result.error}" }
                         continue
                     }
 
-                    avgQueryTimeElapsed_counter += result.queryTimeElapsedMs
-                    avgQueryTimeElapsed_total += 1.0
+                    avgQueryTimeElapsedCounter += result.queryTimeElapsedMs
+                    avgQueryTimeElapsedTotal += 1.0
 
                     if (result.vedtaksResult == "") { // No decision made yet
                         continue
                     }
 
-                    logg.info("debug: soknadsType=${result.soknadsType}")
+                    logg.debug { "Søknadstype: ${result.soknadsType}" }
 
                     // Make the result available to the rest of the infrastructure some time after 06:00 the following
                     // day after the decision is made. This allows caseworkers to fix mistakes within the same day.
                     val waitUntil = result.vedtaksDate!!.plusDays(1).atTime(6, 0, 0)
                     if (LocalDateTime.now().isBefore(waitUntil)) {
-                        logg.info(
-                            "DEBUG: Decision has been made but we will wait until after 06:00 the next day before passing it on to the rapid: requestId={} vedtaksDato={}, waitUntil={}, now={}",
-                            result.req.id,
-                            result.vedtaksDate,
-                            waitUntil,
-                            LocalDateTime.now(),
-                        )
+                        logg.debug {
+                            """
+                                Decision has been made but we will wait until after 06:00 the next day before 
+                                passing it on to the rapid, requestId: ${result.req.id}, 
+                                vedtaksdato: ${result.vedtaksDate}, waitUntil: $waitUntil, now: ${LocalDateTime.now()}
+                            """.trimIndent()
+                        }
                         continue
                     }
 
@@ -218,14 +194,13 @@ fun main() {
                                     result.req.fnr,
                                     result.req.tknr,
                                     result.soknadsType ?: "",
-                                )
-                            )
+                                ),
+                            ),
                         )
-                        logg.info("Sent vedtaksresultat to rapid with soknadsType=${result.soknadsType}")
+                        logg.info { "Sent vedtaksresultat to rapid with søknadstype: ${result.soknadsType}" }
                         metrics.meldingTilRapidSuksess()
                     } catch (e: Exception) {
-                        logg.error("error: sending hm-VedtaksResultatFraInfotrygd to rapid failed: $e")
-                        e.printStackTrace()
+                        logg.error(e) { "Sending hm-VedtaksResultatFraInfotrygd to rapid failed" }
                         metrics.meldingTilRapidFeilet()
                         throw e
                     }
@@ -245,24 +220,28 @@ fun main() {
                     }
 
                     // Metrics on the different possible result types
-                    metrics.vedtaksResultatType(result.vedtaksResult)
+                    metrics.vedtakResultatType(result.vedtaksResult)
 
                     store.remove(UUID.fromString(result.req.id))
-                    logg.info("Vedtak decision found for søknadsID=${result.req.id} queryTimeElapsed=${result.queryTimeElapsedMs}ms")
+                    logg.info { "Vedtak decision found for søknadId: ${result.req.id}, queryTimeElapsed: ${result.queryTimeElapsedMs}ms" }
                 }
 
-                val avgQueryTime = avgQueryTimeElapsed_counter / avgQueryTimeElapsed_total
-                logg.info("Processed batch successfully (decisions made / total batch size): $decisionsMade/${list.size}. Avg. time elapsed: $avgQueryTime")
+                val avgQueryTime = avgQueryTimeElapsedCounter / avgQueryTimeElapsedTotal
+                logg.info {
+                    """
+                        Processed batch successfully (decisions made / total batch size): $decisionsMade/${list.size}. 
+                        Avg. time elapsed: $avgQueryTime
+                    """.trimIndent()
+                }
 
                 val oldest = store.getOldestInPollList()
                 if (oldest != null) {
-                    logg.info("oldest in polling: $oldest")
+                    logg.info { "Oldest in polling: $oldest" }
                 } else {
-                    logg.info("getOldestInPollList returned null")
+                    logg.info { "getOldestInPollList returned null" }
                 }
             } catch (e: Exception) {
-                logg.error("error: encountered an exception while processing Infotrygd polls: $e")
-                e.printStackTrace()
+                logg.error(e) { "Encountered an exception while processing Infotrygd polls" }
 
                 // logg.error("error: sleeping for 10min due to error, before continuing")
                 // Thread.sleep(1000*60*10)
@@ -274,9 +253,9 @@ fun main() {
     }
 
     // Run our rapid and rivers implementation
-    logg.info("Starting Rapid & Rivers app")
+    logg.info { "Starting Rapid & Rivers app" }
     rapidApp.start()
-    logg.info("Application ending.")
+    logg.info { "Application ending." }
 }
 
 data class VedtakResultat(

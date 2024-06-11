@@ -1,13 +1,14 @@
 package no.nav.hjelpemidler.metrics
 
+import io.github.oshai.kotlinlogging.KotlinLogging
 import no.nav.helse.rapids_rivers.MessageContext
-import org.slf4j.LoggerFactory
+
+private val log = KotlinLogging.logger {}
 
 class Metrics(
     private val influxClient: InfluxClient,
     messageContext: MessageContext,
 ) {
-    private val log = LoggerFactory.getLogger(Metrics::class.java)
     private val metricsProducer = MetricsProducer(messageContext)
 
     fun meldingTilRapidSuksess() {
@@ -18,7 +19,7 @@ class Metrics(
         registerPoint(MELDING_TIL_RAPID_FEILET, mapOf("counter" to 1L), emptyMap())
     }
 
-    fun vedtaksResultatType(resultat: String) {
+    fun vedtakResultatType(resultat: String) {
         registerPoint(RESULT_TYPE, mapOf("counter" to 1L), mapOf("resultat_type" to resultat))
     }
 
@@ -28,11 +29,11 @@ class Metrics(
 
     private fun registerPoint(measurement: String, fields: Map<String, Any>, tags: Map<String, String>) {
         try {
-            log.info("Posting point to Influx: measurement {} fields {} tags {} ", measurement, fields, tags)
+            log.debug { "Posting point to Influx, measurement: $measurement, fields: $fields, tags: $tags" }
             influxClient.writeEvent(measurement, fields, tags)
             metricsProducer.hendelseOpprettet(measurement, fields, tags)
         } catch (e: Exception) {
-            log.warn("Sending av metrics feilet.", e)
+            log.warn(e) { "Sending av metrics feilet." }
         }
     }
 

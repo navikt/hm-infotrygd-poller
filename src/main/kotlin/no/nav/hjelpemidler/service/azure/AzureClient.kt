@@ -1,7 +1,7 @@
 package no.nav.hjelpemidler.service.azure
 
 import com.fasterxml.jackson.databind.ObjectMapper
-import mu.KotlinLogging
+import io.github.oshai.kotlinlogging.KotlinLogging
 import java.io.InputStream
 import java.net.HttpURLConnection
 import java.net.URL
@@ -16,14 +16,14 @@ class AzureClient(private val tenantUrl: String, private val clientId: String, p
         private val objectMapper = ObjectMapper()
     }
 
-    private val tokencache: MutableMap<String, Token> = mutableMapOf()
+    private val tokenCache: MutableMap<String, Token> = mutableMapOf()
 
     fun getToken(scope: String) =
-        tokencache[scope]
+        tokenCache[scope]
             ?.takeUnless(Token::isExpired)
             ?: fetchToken(scope)
                 .also { token ->
-                    tokencache[scope] = token
+                    tokenCache[scope] = token
                 }
 
     private fun fetchToken(scope: String): Token {
@@ -43,34 +43,34 @@ class AzureClient(private val tenantUrl: String, private val clientId: String, p
             responseCode to stream?.bufferedReader()?.readText()
         }
 
-        sikkerlogg.info("svar fra azure ad: responseCode=$responseCode responseBody=$responseBody")
+        sikkerlogg.info { "Svar fra Azure AD, responseCode: $responseCode, responseBody: $responseBody" }
 
         if (responseBody == null) {
-            throw RuntimeException("ukjent feil fra azure ad (responseCode=$responseCode), responseBody er null")
+            throw RuntimeException("Ukjent feil fra Azure AD (responseCode: $responseCode), responseBody er null")
         }
 
         val jsonNode = objectMapper.readTree(responseBody)
 
         if (jsonNode.has("error")) {
-            logg.error("${jsonNode["error_description"].textValue()}: $jsonNode")
-            throw RuntimeException("error from the azure token endpoint: ${jsonNode["error_description"].textValue()}")
+            logg.error { "${jsonNode["error_description"].textValue()}: $jsonNode" }
+            error("error from the azure token endpoint: ${jsonNode["error_description"].textValue()}")
         } else if (responseCode >= 300) {
-            throw RuntimeException("unknown error (responseCode=$responseCode) from azure ad")
+            error("Unknown error (responseCode: $responseCode) from Azure AD")
         }
 
         return Token(
             tokenType = jsonNode["token_type"].textValue(),
             expiresIn = jsonNode["expires_in"].longValue(),
-            accessToken = jsonNode["access_token"].textValue()
+            accessToken = jsonNode["access_token"].textValue(),
         )
     }
 
     data class Token(val tokenType: String, val expiresIn: Long, val accessToken: String) {
         companion object {
-            private const val leewaySeconds = 60
+            private const val LEEWAY_SECONDS = 60
         }
 
-        private val expiresOn = Instant.now().plusSeconds(expiresIn - leewaySeconds)
+        private val expiresOn = Instant.now().plusSeconds(expiresIn - LEEWAY_SECONDS)
 
         fun isExpired(): Boolean = expiresOn.isBefore(Instant.now())
     }

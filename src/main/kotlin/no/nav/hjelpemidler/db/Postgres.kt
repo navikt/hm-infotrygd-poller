@@ -2,7 +2,7 @@ package no.nav.hjelpemidler.db
 
 import com.zaxxer.hikari.HikariConfig
 import com.zaxxer.hikari.HikariDataSource
-import mu.KotlinLogging
+import io.github.oshai.kotlinlogging.KotlinLogging
 import no.nav.hjelpemidler.configuration.Configuration
 import org.flywaydb.core.Flyway
 import org.flywaydb.core.api.output.MigrateResult
@@ -21,7 +21,7 @@ internal fun waitForDB(timeout: Duration): Boolean {
             Socket(Configuration.db["DB_HOST"]!!, Configuration.db["DB_PORT"]!!.toInt())
             return true
         } catch (e: Exception) {
-            logg.info("Database not available yet, waiting...")
+            logg.info { "Database not available yet, waiting..." }
             Thread.sleep(1000 * 2)
         }
         if (LocalDateTime.now().isAfter(deadline)) break

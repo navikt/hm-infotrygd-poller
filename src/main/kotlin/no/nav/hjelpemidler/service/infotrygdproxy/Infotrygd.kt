@@ -3,13 +3,13 @@ package no.nav.hjelpemidler.service.infotrygdproxy
 import com.fasterxml.jackson.annotation.JsonFormat
 import com.fasterxml.jackson.annotation.JsonProperty
 import com.fasterxml.jackson.databind.DeserializationFeature
-import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.databind.SerializationFeature
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize
+import com.fasterxml.jackson.databind.json.JsonMapper
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule
-import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
+import com.fasterxml.jackson.module.kotlin.jacksonMapperBuilder
 import com.fasterxml.jackson.module.kotlin.readValue
-import mu.KotlinLogging
+import io.github.oshai.kotlinlogging.KotlinLogging
 import no.nav.hjelpemidler.configuration.Configuration
 import no.nav.hjelpemidler.service.azure.AzureClient
 import java.net.URI
@@ -21,35 +21,34 @@ import java.time.LocalDateTime
 import java.util.UUID
 import kotlin.time.Duration
 import kotlin.time.DurationUnit
-import kotlin.time.ExperimentalTime
 import kotlin.time.measureTime
 
 private val logg = KotlinLogging.logger {}
 private val sikkerlogg = KotlinLogging.logger("tjenestekall")
 
-private val mapper = jacksonObjectMapper().registerModule(JavaTimeModule())
-
-private val azClient = AzureClient(Configuration.azureAD["AZURE_TENANT_BASEURL"]!! + "/" + Configuration.azureAD["AZURE_APP_TENANT_ID"]!!, Configuration.azureAD["AZURE_APP_CLIENT_ID"]!!, Configuration.azureAD["AZURE_APP_CLIENT_SECRET"]!!)
+private val azClient = AzureClient(
+    Configuration.azureAD["AZURE_TENANT_BASEURL"]!! + "/" + Configuration.azureAD["AZURE_APP_TENANT_ID"]!!,
+    Configuration.azureAD["AZURE_APP_CLIENT_ID"]!!,
+    Configuration.azureAD["AZURE_APP_CLIENT_SECRET"]!!,
+)
 private var azTokenTimeout: LocalDateTime? = null
 private var azToken: String? = null
 
-@ExperimentalTime
+private val mapper: JsonMapper = jacksonMapperBuilder()
+    .addModules(JavaTimeModule())
+    .disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES)
+    .disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS)
+    .build()
+
 class Infotrygd {
-
-    private val mapper = ObjectMapper()
-
-    init {
-        mapper.registerModule(JavaTimeModule())
-            .disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES)
-            .disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS)
-    }
-
-    fun batchQueryVedtakResultat(reqs: List<Request>): List<Response> {
-        if (Configuration.application["APP_PROFILE"] != "prod") logg.info("DEBUG: batchQueryVedtakResultat: reqs=$reqs")
+    fun batchQueryVedtakResultat(requests: List<Request>): List<Response> {
+        if (Configuration.application["APP_PROFILE"] != "prod") {
+            logg.debug { "batchQueryVedtakResultat: requests: $requests" }
+        }
 
         var results: List<Response>? = null
         val elapsed: Duration = measureTime {
-            val json: String = mapper.writeValueAsString(reqs.toTypedArray())
+            val json: String = mapper.writeValueAsString(requests.toTypedArray())
 
             if (azTokenTimeout == null || azTokenTimeout?.isBefore(LocalDateTime.now()) == true) {
                 val token = azClient.getToken(Configuration.azureAD["AZURE_AD_SCOPE"]!!)
@@ -61,7 +60,9 @@ class Infotrygd {
             val authToken = azToken!!
             val url = Configuration.infotrygdProxy["INFOTRYGDPROXY_URL"]!! + "/vedtak-resultat"
 
-            if (Configuration.application["APP_PROFILE"] != "prod") logg.info("DEBUG: Making proxy request with url: $url and json: $json. Token: [MASKED]")
+            if (Configuration.application["APP_PROFILE"] != "prod") {
+                logg.debug { "Making proxy request with url: $url and json: $json. Token: [MASKED]" }
+            }
 
             // Execute request towards graphql API server
             val client: HttpClient = HttpClient.newHttpClient()
@@ -78,20 +79,31 @@ class Infotrygd {
             // Check response codes
             if (httpResponse.statusCode() < 200 || httpResponse.statusCode() >= 300) {
                 val statusCode = httpResponse.statusCode()
-                throw Exception("invalid response status code when requesting infotrygd data: req=$reqs statusCode=$statusCode responseBody: ${httpResponse.body()}")
+                throw Exception(
+                    """
+                        invalid response status code when requesting infotrygd data: req=$requests statusCode=$statusCode 
+                        responseBody: ${httpResponse.body()}
+                    """.trimIndent(),
+                )
             }
 
-            val jsonResp: String = httpResponse.body()
-            if (Configuration.application["APP_PROFILE"] != "prod") logg.info("DEBUG: received response pre-parsing: $jsonResp")
+            val jsonResponse: String = httpResponse.body()
+            if (Configuration.application["APP_PROFILE"] != "prod") {
+                logg.debug { "Received response pre-parsing: $jsonResponse" }
+            }
 
-            results = mapper.readValue(jsonResp)
+            results = mapper.readValue(jsonResponse)
         }
 
-        if (Configuration.application["APP_PROFILE"] != "prod") logg.info(
-            "DEBUG: Response received from infotrygd: $results. Total request time elapsed: ${elapsed.toDouble(
-                DurationUnit.MILLISECONDS
-            )}"
-        )
+        if (Configuration.application["APP_PROFILE"] != "prod") {
+            logg.debug {
+                "Response received from infotrygd: $results. Total request time elapsed: ${
+                    elapsed.toDouble(
+                        DurationUnit.MILLISECONDS,
+                    )
+                }"
+            }
+        }
 
         return results!!.toList()
     }

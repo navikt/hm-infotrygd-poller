@@ -13,7 +13,7 @@ spec:
     min: 1
     max: 1
   kafka:
-    pool: nav-prod
+    pool: nav-dev
   resources:
     limits:
       cpu: 2000m
@@ -35,14 +35,14 @@ spec:
   accessPolicy:
     outbound:
       external:
-        - host: hm-infotrygd-proxy.prod-fss-pub.nais.io
+        - host: hm-infotrygd-proxy.dev-fss-pub.nais.io
   gcp:
     sqlInstances:
-      - name: hm-infotrygd-poller-db-prod
+      - name: hm-infotrygd-poller-db-dev
         type: POSTGRES_15
-        tier: db-g1-small
+        tier: db-f1-micro
         diskType: SSD
-        highAvailability: true
+        highAvailability: false
         diskSize: 10
         diskAutoresize: true
         autoBackupHour: 3
@@ -50,3 +50,14 @@ spec:
           - name: infotrygd-poller
             envVarPrefix: DB
         cascadingDelete: false
+  env:
+    - name: HTTP_PORT
+      value: "8080"
+    - name: RAPID_APP_NAME
+      value: hm-infotrygd-poller
+    - name: KAFKA_RAPID_TOPIC
+      value: teamdigihot.hm-soknadsbehandling-v1
+    - name: KAFKA_CONSUMER_GROUP_ID
+      value: hm-infotrygd-poller-v2
+    - name: KAFKA_RESET_POLICY
+      value: latest

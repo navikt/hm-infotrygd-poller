@@ -3,7 +3,7 @@ package no.nav.hjelpemidler.service.infotrygdproxy
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule
 import com.fasterxml.jackson.module.kotlin.readValue
-import mu.KotlinLogging
+import io.github.oshai.kotlinlogging.KotlinLogging
 import no.nav.hjelpemidler.VedtakResultat
 import java.time.LocalDate
 import java.time.LocalDateTime
@@ -14,9 +14,9 @@ import kotlin.test.assertEquals
 import kotlin.test.assertTrue
 import kotlin.time.ExperimentalTime
 
-internal class InfotrygdServiceTest {
-    private val logg = KotlinLogging.logger {}
+private val logg = KotlinLogging.logger {}
 
+class InfotrygdServiceTest {
     @ExperimentalTime
     @Test
     fun `Parse vedtaksdato to LocalDate`() {
@@ -36,7 +36,7 @@ internal class InfotrygdServiceTest {
                 "vedtaksDate": "2021-03-23",
                 "queryTimeElapsedMs": 1.480892
             }
-            """.trimIndent()
+            """.trimIndent(),
         )
 
         println(result)
@@ -67,7 +67,7 @@ internal class InfotrygdServiceTest {
                 "10127622634",
                 "",
                 "",
-            )
+            ),
         )
 
         val contains = expectedDate.format(DateTimeFormatter.ISO_DATE)
@@ -80,7 +80,8 @@ internal class InfotrygdServiceTest {
 
     @Test
     fun `Test escaping of strings when manually composing json`() {
-        val someString = "hm-infotrygd-poller.poll.oldest,application=hm-infotrygd-poller,cluster=prod-gcp,namespace=teamdigihot oldest=\"2021-04-14T08:16:59.185724\" 1618837776003000000"
+        val someString =
+            "hm-infotrygd-poller.poll.oldest,application=hm-infotrygd-poller,cluster=prod-gcp,namespace=teamdigihot oldest=\"2021-04-14T08:16:59.185724\" 1618837776003000000"
         var someOtherString = "hello: \"$someString\""
         println("Before: $someOtherString")
 
@@ -103,19 +104,10 @@ internal class InfotrygdServiceTest {
         for (result in results) {
             val waitUntil = result.vedtaksDate!!.plusDays(1).atTime(6, 0, 0)
             if (now.isBefore(waitUntil)) {
-                logg.info(
-                    "DEBUG: Decision has been made but we will wait until after 06:00 the next day before passing it on to the rapid: vedtaksDato={}, waitUntil={}, now={}",
-                    result.vedtaksDate,
-                    waitUntil,
-                    now,
-                )
+                logg.debug { "Decision has been made but we will wait until after 06:00 the next day before passing it on to the rapid, vedtaksdato: ${result.vedtaksDate}, waitUntil, $waitUntil, now: $now" }
                 continue
             }
-            logg.info(
-                "Decision made {} < {}",
-                waitUntil,
-                now
-            )
+            logg.info { "Decision made $waitUntil < $now" }
         }
     }
 }
