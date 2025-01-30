@@ -154,7 +154,7 @@ fun main() {
                     }
 
                     if (result.error != null) {
-                        logg.error { "Decision polling failed with error: ${result.error}" }
+                        logg.warn { "Decision polling failed with error: ${result.error}" }
                         continue
                     }
 
