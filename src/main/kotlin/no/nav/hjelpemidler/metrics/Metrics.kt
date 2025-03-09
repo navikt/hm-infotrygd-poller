@@ -6,7 +6,6 @@ import no.nav.helse.rapids_rivers.MessageContext
 private val log = KotlinLogging.logger {}
 
 class Metrics(
-    private val influxClient: InfluxClient,
     messageContext: MessageContext,
 ) {
     private val metricsProducer = MetricsProducer(messageContext)
@@ -29,8 +28,7 @@ class Metrics(
 
     private fun registerPoint(measurement: String, fields: Map<String, Any>, tags: Map<String, String>) {
         try {
-            log.debug { "Posting point to Influx, measurement: $measurement, fields: $fields, tags: $tags" }
-            influxClient.writeEvent(measurement, fields, tags)
+            log.debug { "Posting point to BigQuery, measurement: $measurement, fields: $fields, tags: $tags" }
             metricsProducer.hendelseOpprettet(measurement, fields, tags)
         } catch (e: Exception) {
             log.warn(e) { "Sending av metrics feilet." }

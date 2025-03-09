@@ -55,12 +55,6 @@ object Configuration {
             "DB_DATABASE" to "infotrygd_poller",
             "DB_USERNAME" to "infotrygd_poller",
             "DB_PASSWORD" to "infotrygd_poller",
-
-            "INFLUX_HOST" to "localhost",
-            "INFLUX_PORT" to "8086",
-            "INFLUX_DATABASE_NAME" to "infotrygd_poller",
-            "INFLUX_USER" to "infotrygd_poller",
-            "INFLUX_PASSWORD" to "infotrygd_poller",
         ),
     )
 
@@ -82,14 +76,6 @@ object Configuration {
         "DB_DATABASE" to configuration[Key("DB_DATABASE", stringType)],
         "DB_USERNAME" to configuration[Key("DB_USERNAME", stringType)],
         "DB_PASSWORD" to configuration[Key("DB_PASSWORD", stringType)],
-    )
-
-    val influx: Map<String, String> = mapOf(
-        "INFLUX_HOST" to configuration[Key("INFLUX_HOST", stringType)],
-        "INFLUX_PORT" to configuration[Key("INFLUX_PORT", stringType)],
-        "INFLUX_DATABASE_NAME" to configuration[Key("INFLUX_DATABASE_NAME", stringType)],
-        "INFLUX_USER" to configuration[Key("INFLUX_USER", stringType)],
-        "INFLUX_PASSWORD" to configuration[Key("INFLUX_PASSWORD", stringType)],
     )
 
     val application: Map<String, String> = mapOf(

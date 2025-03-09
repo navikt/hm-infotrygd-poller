@@ -17,9 +17,6 @@ dependencies {
     implementation(libs.hikaricp)
     implementation(libs.postgresql)
 
-    // Metrics
-    implementation(libs.influxdb.client.kotlin)
-
     testImplementation(libs.kotlin.test.junit5)
 }
 
