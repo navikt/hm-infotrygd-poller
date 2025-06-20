@@ -24,7 +24,6 @@ import kotlin.time.DurationUnit
 import kotlin.time.measureTime
 
 private val logg = KotlinLogging.logger {}
-private val sikkerlogg = KotlinLogging.logger("tjenestekall")
 
 private val azClient = AzureClient(
     Configuration.azureAD["AZURE_TENANT_BASEURL"]!! + "/" + Configuration.azureAD["AZURE_APP_TENANT_ID"]!!,

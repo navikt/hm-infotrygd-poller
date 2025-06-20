@@ -21,8 +21,6 @@ spec:
     requests:
       cpu: 200m
       memory: 600Mi
-  secureLogs:
-    enabled: true
   liveness:
     path: /isalive
   readiness:
@@ -34,6 +32,9 @@ spec:
     outbound:
       external:
         - host: hm-infotrygd-proxy.dev-fss-pub.nais.io
+      rules:
+        - application: logging
+          namespace: nais-system
   gcp:
     sqlInstances:
       - name: hm-infotrygd-poller-db-dev

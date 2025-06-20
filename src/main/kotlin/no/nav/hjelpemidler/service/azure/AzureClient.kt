@@ -8,7 +8,6 @@ import java.net.URL
 import java.time.Instant
 
 private val logg = KotlinLogging.logger {}
-private val sikkerlogg = KotlinLogging.logger("tjenestekall")
 
 class AzureClient(private val tenantUrl: String, private val clientId: String, private val clientSecret: String) {
 
@@ -42,8 +41,6 @@ class AzureClient(private val tenantUrl: String, private val clientId: String, p
             val stream: InputStream? = if (responseCode < 300) this.inputStream else this.errorStream
             responseCode to stream?.bufferedReader()?.readText()
         }
-
-        sikkerlogg.info { "Svar fra Azure AD, responseCode: $responseCode, responseBody: $responseBody" }
 
         if (responseBody == null) {
             throw RuntimeException("Ukjent feil fra Azure AD (responseCode: $responseCode), responseBody er null")

@@ -9,7 +9,6 @@ import no.nav.hjelpemidler.db.PollListStore
 import java.util.UUID
 
 private val logg = KotlinLogging.logger {}
-private val sikkerlogg = KotlinLogging.logger("tjenestekall")
 
 internal class InfotrygdAddToPollVedtakListRiver(
     rapidsConnection: RapidsConnection,

@@ -6,9 +6,13 @@ plugins {
 
 dependencies {
     implementation(libs.kotlin.stdlib)
-    implementation(libs.kotlin.logging)
     implementation(libs.rapidsAndRivers)
     implementation(libs.konfig.deprecated)
+
+    // Logging TODO erstatt med libs.hotlibs.logging i nyere versjon av hotlibs
+    implementation(libs.kotlin.logging)
+    runtimeOnly(libs.logback.classic)
+    runtimeOnly(libs.logstash.logback.encoder)
 
     // Database
     implementation(libs.flyway.core)

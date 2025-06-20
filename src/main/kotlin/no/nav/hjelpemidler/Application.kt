@@ -30,6 +30,9 @@ private val mapper = jacksonObjectMapper().registerModule(JavaTimeModule())
 
 @ExperimentalTime
 fun main() {
+    logg.teamInfo { "TEAM_LOGS_TEST" }
+    logg.info { "LOGS_TEST" }
+
     if (!waitForDB(10.minutes)) {
         error("Databasen ble ikke tilgjengelig innen 10 minutter")
     }
