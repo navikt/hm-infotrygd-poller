@@ -4,8 +4,11 @@ import com.fasterxml.jackson.annotation.JsonFormat
 import com.fasterxml.jackson.annotation.JsonProperty
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule
 import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
+import com.fasterxml.jackson.module.kotlin.jsonMapper
 import io.github.oshai.kotlinlogging.KotlinLogging
 import io.ktor.server.application.call
+import io.ktor.server.application.install
+import io.ktor.server.plugins.contentnegotiation.ContentNegotiation
 import io.ktor.server.request.receive
 import io.ktor.server.routing.post
 import io.ktor.server.routing.routing
@@ -50,6 +53,9 @@ fun main() {
 
     // Define our rapid and rivers app
     val rapidApp: RapidsConnection = RapidApplication.create(System.getenv()) { engine, _ ->
+        engine.application.install(ContentNegotiation) {
+            jsonMapper { mapper }
+        }
         engine.application.routing {
             post("/internal/brevstatistikk") {
                 data class Req(

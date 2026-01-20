@@ -8,6 +8,8 @@ dependencies {
     implementation(libs.kotlin.stdlib)
     implementation(libs.rapidsAndRivers)
     implementation(libs.konfig.deprecated)
+    implementation(libs.ktor.server.content.negotiation)
+    implementation(libs.ktor.serialization.jackson)
 
     // Logging TODO erstatt med libs.hotlibs.logging i nyere versjon av hotlibs
     implementation(libs.kotlin.logging)
