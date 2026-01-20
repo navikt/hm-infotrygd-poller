@@ -54,15 +54,15 @@ fun main() {
     // Define our rapid and rivers app
     val rapidApp = RapidApplication.Builder(RapidApplicationConfig.fromEnv(System.getenv()))
         .withKtorModule {
-            install(ContentNegotiation) { jackson() }
+            install(ContentNegotiation) { jackson { registerModule(JavaTimeModule()) } }
             routing {
                 post("/internal/brevstatistikk") {
-                    data class Req(
+                    data class Request(
                         val enhet: String,
                         val minVedtaksdato: LocalDate,
                         val maksVedtaksdato: LocalDate,
                     )
-                    val req = call.receive<Req>()
+                    val req = call.receive<Request>()
 
                     // Oppdater brevstatistikk
                     logg.info { "Oppdaterer brevstatistikk (manuelt): enhet=${req.enhet}, minVedtaksdato=${req.minVedtaksdato}, maksVedtaksdato=${req.maksVedtaksdato}" }
