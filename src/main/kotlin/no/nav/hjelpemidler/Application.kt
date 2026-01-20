@@ -13,7 +13,7 @@ import io.ktor.server.request.receive
 import io.ktor.server.routing.post
 import io.ktor.server.routing.routing
 import no.nav.helse.rapids_rivers.RapidApplication
-import no.nav.helse.rapids_rivers.RapidsConnection
+import no.nav.helse.rapids_rivers.RapidApplication.RapidApplicationConfig
 import no.nav.hjelpemidler.configuration.Configuration
 import no.nav.hjelpemidler.db.BrevstatistikkStore
 import no.nav.hjelpemidler.db.PollListStorePostgres
@@ -52,52 +52,53 @@ fun main() {
     val brevstatistikkStore = BrevstatistikkStore(datasource)
 
     // Define our rapid and rivers app
-    val rapidApp: RapidsConnection = RapidApplication.create(System.getenv()) { engine, _ ->
-        engine.application.install(ContentNegotiation) { jackson() }
-        engine.application.routing {
-            post("/internal/brevstatistikk") {
-                data class Req(
-                    val enhet: String,
-                    val minVedtaksdato: LocalDate,
-                    val maksVedtaksdato: LocalDate,
-                )
-                val req = call.receive<Req>()
+    val rapidApp = RapidApplication.Builder(RapidApplicationConfig.fromEnv(System.getenv()))
+        .withKtorModule {
+            install(ContentNegotiation) { jackson() }
+            routing {
+                post("/internal/brevstatistikk") {
+                    data class Req(
+                        val enhet: String,
+                        val minVedtaksdato: LocalDate,
+                        val maksVedtaksdato: LocalDate,
+                    )
+                    val req = call.receive<Req>()
 
-                // Oppdater brevstatistikk
-                logg.info { "Oppdaterer brevstatistikk (manuelt): enhet=${req.enhet}, minVedtaksdato=${req.minVedtaksdato}, maksVedtaksdato=${req.maksVedtaksdato}" }
-                val brevstatistikk = Infotrygd().hentBrevstatistikk(
-                    req.enhet,
-                    req.minVedtaksdato,
-                    req.maksVedtaksdato,
-                )
+                    // Oppdater brevstatistikk
+                    logg.info { "Oppdaterer brevstatistikk (manuelt): enhet=${req.enhet}, minVedtaksdato=${req.minVedtaksdato}, maksVedtaksdato=${req.maksVedtaksdato}" }
+                    val brevstatistikk = Infotrygd().hentBrevstatistikk(
+                        req.enhet,
+                        req.minVedtaksdato,
+                        req.maksVedtaksdato,
+                    )
 
-                val eldste = brevstatistikk.fold(LocalDate.EPOCH) { eldste, row ->
-                    val radDato = LocalDate.parse("${row.år}-${row.måned}-${row.dag}")
-                    if (radDato.isBefore(eldste)) {
-                        radDato
-                    } else {
-                        eldste
+                    val eldste = brevstatistikk.fold(LocalDate.EPOCH) { eldste, row ->
+                        val radDato = LocalDate.parse("${row.år}-${row.måned}-${row.dag}")
+                        if (radDato.isBefore(eldste)) {
+                            radDato
+                        } else {
+                            eldste
+                        }
+                    }
+                    logg.info { "Fant ${brevstatistikk.count()} rader med brevstatistikk (eldste=$eldste)" }
+                    brevstatistikk.forEach { row ->
+                        brevstatistikkStore.lagre(
+                            row.enhet,
+                            LocalDate.parse("${row.år}-${row.måned}-${row.dag}"),
+                            row.brevkode,
+                            row.valg,
+                            row.undervalg,
+                            row.type,
+                            row.resultat,
+                            row.antall,
+                        )
                     }
                 }
-                logg.info { "Fant ${brevstatistikk.count()} rader med brevstatistikk (eldste=$eldste)" }
-                brevstatistikk.forEach { row ->
-                    brevstatistikkStore.lagre(
-                        row.enhet,
-                        LocalDate.parse("${row.år}-${row.måned}-${row.dag}"),
-                        row.brevkode,
-                        row.valg,
-                        row.undervalg,
-                        row.type,
-                        row.resultat,
-                        row.antall,
-                    )
-                }
             }
+        }.build().apply {
+            if (Configuration.application["APP_PROFILE"] != "prod") LoggRiver(this)
+            InfotrygdAddToPollVedtakListRiver(this, store)
         }
-    }.apply {
-        if (Configuration.application["APP_PROFILE"] != "prod") LoggRiver(this)
-        InfotrygdAddToPollVedtakListRiver(this, store)
-    }
 
     val metrics = Metrics(rapidApp)
 
