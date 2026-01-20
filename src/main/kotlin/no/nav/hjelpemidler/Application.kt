@@ -5,9 +5,14 @@ import com.fasterxml.jackson.annotation.JsonProperty
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule
 import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import io.github.oshai.kotlinlogging.KotlinLogging
+import io.ktor.server.application.call
+import io.ktor.server.request.receive
+import io.ktor.server.routing.post
+import io.ktor.server.routing.routing
 import no.nav.helse.rapids_rivers.RapidApplication
 import no.nav.helse.rapids_rivers.RapidsConnection
 import no.nav.hjelpemidler.configuration.Configuration
+import no.nav.hjelpemidler.db.BrevstatistikkStore
 import no.nav.hjelpemidler.db.PollListStorePostgres
 import no.nav.hjelpemidler.db.dataSource
 import no.nav.hjelpemidler.db.migrate
@@ -19,6 +24,7 @@ import no.nav.hjelpemidler.service.infotrygdproxy.Infotrygd
 import java.time.Duration
 import java.time.LocalDate
 import java.time.LocalDateTime
+import java.time.temporal.ChronoUnit
 import java.util.UUID
 import kotlin.concurrent.thread
 import kotlin.time.Duration.Companion.minutes
@@ -38,10 +44,45 @@ fun main() {
     migrate()
 
     // Set up our database connection
-    val store = PollListStorePostgres(dataSource())
+    val datasource = dataSource()
+    val store = PollListStorePostgres(datasource)
+    val brevstatistikkStore = BrevstatistikkStore(datasource)
 
     // Define our rapid and rivers app
-    val rapidApp: RapidsConnection = RapidApplication.create(System.getenv()).apply {
+    val rapidApp: RapidsConnection = RapidApplication.create(System.getenv()) { engine, _ ->
+        engine.application.routing {
+            post("/internal/brevstatistikk") {
+                data class Req(
+                    val enhet: String,
+                    val minVedtaksdato: LocalDate,
+                    val maksVedtaksdato: LocalDate,
+                )
+                val req = call.receive<Req>()
+
+                // Oppdater brevstatistikk
+                logg.info { "Oppdaterer brevstatistikk (manuelt): enhet=${req.enhet}, minVedtaksdato=${req.minVedtaksdato}, maksVedtaksdato=${req.maksVedtaksdato}" }
+                val brevstatistikk = Infotrygd().hentBrevstatistikk(
+                    req.enhet,
+                    req.minVedtaksdato,
+                    req.maksVedtaksdato,
+                )
+
+                brevstatistikk.forEach { row ->
+                    brevstatistikkStore.lagre(
+                        row.enhet,
+                        row.år,
+                        row.måned,
+                        row.brevkode,
+                        row.valg,
+                        row.undervalg,
+                        row.type,
+                        row.resultat,
+                        row.antall,
+                    )
+                }
+            }
+        }
+    }.apply {
         if (Configuration.application["APP_PROFILE"] != "prod") LoggRiver(this)
         InfotrygdAddToPollVedtakListRiver(this, store)
     }
@@ -246,6 +287,46 @@ fun main() {
 
                 Thread.sleep(1000)
                 continue
+            }
+        }
+    }
+
+    // Run background daemon for polling Infotrygd
+    thread(isDaemon = true) {
+        logg.info { "Brevstatistikk daemon starting" }
+
+        val nesteSkanning = {
+            LocalDateTime.now().let {
+                if (it.hour >= 3) it.plusDays(1) else it
+            }.withHour(3).withMinute(0).withSecond(0)
+        }
+
+        while (true) {
+            // Vent til neste skanning
+            val neste = nesteSkanning()
+            logg.info { "Venter til neste skanning: $neste" }
+            Thread.sleep(LocalDateTime.now().until(neste, ChronoUnit.MILLIS))
+
+            // Oppdater brevstatistikk fra de siste syv dagene (i tilfelle noe endrer seg underveis)
+            logg.info { "Oppdaterer brevstatistikk" }
+            val brevstatistikk = Infotrygd().hentBrevstatistikk(
+                "4703",
+                LocalDate.now().minusDays(8),
+                LocalDate.now().minusDays(1),
+            )
+
+            brevstatistikk.forEach { row ->
+                brevstatistikkStore.lagre(
+                    row.enhet,
+                    row.år,
+                    row.måned,
+                    row.brevkode,
+                    row.valg,
+                    row.undervalg,
+                    row.type,
+                    row.resultat,
+                    row.antall,
+                )
             }
         }
     }

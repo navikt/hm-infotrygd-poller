@@ -107,6 +107,52 @@ class Infotrygd {
         return results!!.toList()
     }
 
+    fun hentBrevstatistikk(enhet: String, minVedtaksdato: LocalDate, maksVedtaksdato: LocalDate): List<Brevstatistikk> {
+        val reqBody: String = mapper.writeValueAsString(
+            mapOf(
+                "enhet" to enhet,
+                "minVedtaksdato" to minVedtaksdato,
+                "maksVedtaksdato" to maksVedtaksdato,
+            ),
+        )
+        val token = azClient.getToken(Configuration.azureAD["AZURE_AD_SCOPE"]!!)
+        val url = Configuration.infotrygdProxy["INFOTRYGDPROXY_URL"]!! + "/hent-brevstatistikk"
+
+        if (Configuration.application["APP_PROFILE"] != "prod") {
+            logg.debug { "Making proxy request with url: $url and json: $reqBody. Token: [MASKED]" }
+        }
+
+        // Execute request towards graphql API server
+        val client: HttpClient = HttpClient.newHttpClient()
+        val request: HttpRequest = HttpRequest.newBuilder()
+            .uri(URI.create(url))
+            .header("Content-Type", "application/json; charset=UTF-8")
+            .header("Accept", "application/json")
+            .header("X-Correlation-ID", UUID.randomUUID().toString())
+            .header("Authorization", "Bearer ${token.accessToken}")
+            .POST(HttpRequest.BodyPublishers.ofString(reqBody))
+            .build()
+        val httpResponse = client.send(request, HttpResponse.BodyHandlers.ofString())
+
+        // Check response codes
+        if (httpResponse.statusCode() < 200 || httpResponse.statusCode() >= 300) {
+            val statusCode = httpResponse.statusCode()
+            throw Exception(
+                """
+                    invalid response status code when requesting brevstatistikk infotrygd data: enhet=$enhet, minVedtaksdato=$minVedtaksdato, maksVedtaksdato=$maksVedtaksdato, statusCode=$statusCode 
+                    responseBody: ${httpResponse.body()}
+                """.trimIndent(),
+            )
+        }
+
+        val jsonResponse: String = httpResponse.body()
+        if (Configuration.application["APP_PROFILE"] != "prod") {
+            logg.debug { "Received response pre-parsing: $jsonResponse" }
+        }
+
+        return mapper.readValue(jsonResponse)
+    }
+
     data class Request(
         @JsonProperty("id")
         val id: String,
@@ -144,5 +190,17 @@ class Infotrygd {
         @JsonProperty("queryTimeElapsedMs")
         @JsonDeserialize
         val queryTimeElapsedMs: Double,
+    )
+
+    data class Brevstatistikk(
+        val enhet: String,
+        val år: String,
+        val måned: String,
+        val brevkode: String,
+        val valg: String,
+        val undervalg: String,
+        val type: String,
+        val resultat: String,
+        val antall: Int,
     )
 }
