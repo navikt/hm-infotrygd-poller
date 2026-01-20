@@ -196,6 +196,7 @@ class Infotrygd {
         val enhet: String,
         val år: String,
         val måned: String,
+        val dag: String,
         val brevkode: String,
         val valg: String,
         val undervalg: String,

@@ -67,11 +67,19 @@ fun main() {
                     req.maksVedtaksdato,
                 )
 
+                val eldste = brevstatistikk.fold(LocalDate.EPOCH) { eldste, row ->
+                    val radDato = LocalDate.parse("${row.år}-${row.måned}-${row.dag}")
+                    if (radDato.isBefore(eldste)) {
+                        radDato
+                    } else {
+                        eldste
+                    }
+                }
+                logg.info { "Fant ${brevstatistikk.count()} rader med brevstatistikk (eldste=$eldste)" }
                 brevstatistikk.forEach { row ->
                     brevstatistikkStore.lagre(
                         row.enhet,
-                        row.år,
-                        row.måned,
+                        LocalDate.parse("${row.år}-${row.måned}-${row.dag}"),
                         row.brevkode,
                         row.valg,
                         row.undervalg,
@@ -315,11 +323,19 @@ fun main() {
                 LocalDate.now().minusDays(1),
             )
 
+            val eldste = brevstatistikk.fold(LocalDate.EPOCH) { eldste, row ->
+                val radDato = LocalDate.parse("${row.år}-${row.måned}-${row.dag}")
+                if (radDato.isBefore(eldste)) {
+                    radDato
+                } else {
+                    eldste
+                }
+            }
+            logg.info { "Fant ${brevstatistikk.count()} rader med brevstatistikk (eldste=$eldste)" }
             brevstatistikk.forEach { row ->
                 brevstatistikkStore.lagre(
                     row.enhet,
-                    row.år,
-                    row.måned,
+                    LocalDate.parse("${row.år}-${row.måned}-${row.dag}"),
                     row.brevkode,
                     row.valg,
                     row.undervalg,
