@@ -75,6 +75,7 @@ fun main() {
 
                     val eldste = brevstatistikk.fold(LocalDate.EPOCH) { eldste, row ->
                         val radDato = LocalDate.parse("${row.år}-${row.måned}-${row.dag}")
+                        if (eldste == LocalDate.EPOCH) return@fold radDato
                         if (radDato.isBefore(eldste)) {
                             radDato
                         } else {
@@ -335,6 +336,7 @@ fun main() {
                 val brevstatistikk = Infotrygd().hentBrevstatistikk(enhet, minVedtaksdato, maksVedtaksdato)
                 val eldste = brevstatistikk.fold(LocalDate.EPOCH) { eldste, row ->
                     val radDato = LocalDate.parse("${row.år}-${row.måned}-${row.dag}")
+                    if (eldste == LocalDate.EPOCH) return@fold radDato
                     if (radDato.isBefore(eldste)) {
                         radDato
                     } else {
