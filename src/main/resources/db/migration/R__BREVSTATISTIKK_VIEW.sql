@@ -3,11 +3,11 @@ CREATE VIEW v1_brevstatistikk_view AS
 SELECT
     bs.enhet,
     bs.dato,
-    INITCAP(COALESCE(bk.beskrivelse, bs.brevkode)) AS brevkode,
-    INITCAP(COALESCE(bv.beskrivelse, bs.valg)) AS valg,
-    INITCAP(COALESCE(buv.beskrivelse, bs.undervalg)) AS undervalg,
-    INITCAP(COALESCE(bt.beskrivelse, bs.type)) AS type,
-    INITCAP(COALESCE(br.beskrivelse, bs.resultat)) AS resultat,
+    COALESCE(INITCAP(bk.beskrivelse), bs.brevkode) AS brevkode,
+    COALESCE(INITCAP(bv.beskrivelse), bs.valg) AS valg,
+    COALESCE(INITCAP(buv.beskrivelse), bs.undervalg) AS undervalg,
+    COALESCE(INITCAP(bt.beskrivelse), bs.type) AS type,
+    COALESCE(INITCAP(br.beskrivelse), bs.resultat) AS resultat,
     bs.antall,
     bs.oppdatert
 FROM v1_brevstatistikk bs
