@@ -1,5 +1,4 @@
 DROP VIEW IF EXISTS v1_brevstatistikk_view;
-
 CREATE VIEW v1_brevstatistikk_view AS
 SELECT
     bs.enhet,
@@ -18,3 +17,5 @@ LEFT JOIN v1_brevstatistikk_resultat br ON br.resultat = TRIM(bs.resultat)
 LEFT JOIN v1_brevstatistikk_valg bv ON bv.valg = TRIM(bs.valg)
 LEFT JOIN v1_brevstatistikk_undervalg buv ON buv.valg = TRIM(bs.valg) AND buv.undervalg = TRIM(bs.undervalg)
 ;
+
+GRANT ALL PRIVILEGES ON ALL TABLES IN SCHEMA public TO cloudsqliamuser;
