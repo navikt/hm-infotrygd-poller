@@ -48,7 +48,6 @@ internal class BrevstatistikkStore(private val ds: DataSource) {
                         ON CONFLICT (enhet, dato, brevkode, valg, undervalg, type, resultat)
                         DO UPDATE SET antall = :antall, oppdatert = NOW()
                     """.trimIndent().split("\n").joinToString(" "),
-                    enhet,
                     mapOf(
                         "enhet" to enhet,
                         "dato" to dato,
