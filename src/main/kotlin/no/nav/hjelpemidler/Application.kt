@@ -11,7 +11,6 @@ import io.ktor.server.application.install
 import io.ktor.server.plugins.contentnegotiation.ContentNegotiation
 import io.ktor.server.request.receive
 import io.ktor.server.response.respondText
-import io.ktor.server.routing.get
 import io.ktor.server.routing.post
 import io.ktor.server.routing.routing
 import no.nav.helse.rapids_rivers.RapidApplication
@@ -58,9 +57,6 @@ fun main() {
         .withKtorModule {
             install(ContentNegotiation) { jackson { registerModule(JavaTimeModule()) } }
             routing {
-                get("/internal/testitest") {
-                    call.respondText("internal testitest")
-                }
                 post("/internal/brevstatistikk") {
                     data class Request(
                         val enhet: String,
@@ -86,6 +82,8 @@ fun main() {
                         }
                     }
                     logg.info { "Fant ${brevstatistikk.count()} rader med brevstatistikk (eldste=$eldste)" }
+
+                    brevstatistikkStore.slettPeriode(req.enhet, req.minVedtaksdato, req.maksVedtaksdato)
                     brevstatistikk.forEach { row ->
                         brevstatistikkStore.lagre(
                             row.enhet,
@@ -330,12 +328,11 @@ fun main() {
             // Oppdater brevstatistikk fra de siste syv dagene (i tilfelle noe endrer seg underveis)
             logg.info { "Oppdaterer brevstatistikk" }
             runCatching {
-                val brevstatistikk = Infotrygd().hentBrevstatistikk(
-                    "4703",
-                    LocalDate.now().minusDays(8),
-                    LocalDate.now().minusDays(1),
-                )
+                val enhet = "4703"
+                val minVedtaksdato = LocalDate.now().minusDays(8)
+                val maksVedtaksdato = LocalDate.now().minusDays(1)
 
+                val brevstatistikk = Infotrygd().hentBrevstatistikk(enhet, minVedtaksdato, maksVedtaksdato)
                 val eldste = brevstatistikk.fold(LocalDate.EPOCH) { eldste, row ->
                     val radDato = LocalDate.parse("${row.år}-${row.måned}-${row.dag}")
                     if (radDato.isBefore(eldste)) {
@@ -346,6 +343,7 @@ fun main() {
                 }
                 logg.info { "Fant ${brevstatistikk.count()} rader med brevstatistikk (eldste=$eldste)" }
 
+                brevstatistikkStore.slettPeriode(enhet, minVedtaksdato, maksVedtaksdato)
                 brevstatistikk.forEach { row ->
                     brevstatistikkStore.lagre(
                         row.enhet,

@@ -10,6 +10,24 @@ import javax.sql.DataSource
 private val logg = KotlinLogging.logger {}
 
 internal class BrevstatistikkStore(private val ds: DataSource) {
+    fun slettPeriode(enhet: String, minVedtaksdato: LocalDate, maksVedtaksdato: LocalDate) =
+        using(sessionOf(ds)) { session ->
+            session.run(
+                queryOf(
+                    """
+                        DELETE FROM public.v1_brevstatistikk
+                        WHERE enhet = :enhet AND dato >= :minVedtaksdato AND dato <= :maksVedtaksdato
+                    """.trimIndent().split("\n").joinToString(" "),
+                    enhet,
+                    mapOf(
+                        "enhet" to enhet,
+                        "minVedtaksdato" to minVedtaksdato,
+                        "maksVedtaksdato" to maksVedtaksdato,
+                    ),
+                ).asUpdate,
+            )
+        }
+
     fun lagre(
         enhet: String,
         dato: LocalDate,
@@ -27,7 +45,8 @@ internal class BrevstatistikkStore(private val ds: DataSource) {
                         INSERT INTO public.v1_brevstatistikk (
                             enhet, dato, brevkode, valg, undervalg, type, resultat, antall
                         ) VALUES (:enhet, :dato, :brevkode, :valg, :undervalg, :type, :resultat, :antall)
-                        ON CONFLICT DO UPDATE SET antall = :antall, oppdatert = NOW();
+                        ON CONFLICT (enhet, dato, brevkode, valg, undervalg, type, resultat)
+                        DO UPDATE SET antall = :antall, oppdatert = NOW()
                     """.trimIndent().split("\n").joinToString(" "),
                     enhet,
                     mapOf(
