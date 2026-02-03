@@ -16,7 +16,9 @@ LEFT JOIN v1_brevstatistikk_type bt ON bt.type = TRIM(bs.type)
 LEFT JOIN v1_brevstatistikk_resultat br ON br.resultat = TRIM(bs.resultat)
 LEFT JOIN v1_brevstatistikk_valg bv ON bv.valg = TRIM(bs.valg)
 LEFT JOIN v1_brevstatistikk_undervalg buv ON buv.valg = TRIM(bs.valg) AND buv.undervalg = TRIM(bs.undervalg)
+WHERE TRUE AND
+  -- Fjern brevkode som antyder mangel på brev (muntlig vedtak)
+  TRIM(bs.brevkode) <> '0VSS'
 ;
 
-GRANT ALL PRIVILEGES ON ALL TABLES IN SCHEMA public TO cloudsqliamuser;
 GRANT ALL PRIVILEGES ON ALL TABLES IN SCHEMA public TO cloudsqliamuser;
