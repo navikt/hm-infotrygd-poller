@@ -100,6 +100,51 @@ fun main() {
 
                     call.respondText("OK")
                 }
+                post("/internal/brevstatistikk2") {
+                    data class Request(
+                        val enhet: String,
+                        val minVedtaksdato: LocalDate,
+                        val maksVedtaksdato: LocalDate,
+                        val digitaleOppgaveIder: Set<String>,
+                    )
+                    val req = call.receive<Request>()
+
+                    // Oppdater brevstatistikk
+                    logg.info { "Oppdaterer brevstatistikk2 (manuelt): enhet=${req.enhet}, minVedtaksdato=${req.minVedtaksdato}, maksVedtaksdato=${req.maksVedtaksdato}" }
+                    val brevstatistikk = Infotrygd().hentBrevstatistikk2(
+                        req.enhet,
+                        req.minVedtaksdato,
+                        req.maksVedtaksdato,
+                        req.digitaleOppgaveIder,
+                    )
+
+                    val eldste = brevstatistikk.fold(LocalDate.EPOCH) { eldste, row ->
+                        if (eldste == LocalDate.EPOCH) return@fold row.dato
+                        if (row.dato.isBefore(eldste)) {
+                            row.dato
+                        } else {
+                            eldste
+                        }
+                    }
+                    logg.info { "Fant ${brevstatistikk.count()} rader med brevstatistikk (eldste=$eldste)" }
+
+                    brevstatistikkStore.slettPeriode2(req.enhet, req.minVedtaksdato, req.maksVedtaksdato)
+                    brevstatistikk.forEach { row ->
+                        brevstatistikkStore.lagre2(
+                            row.enhet,
+                            row.dato,
+                            row.digital,
+                            row.brevkode,
+                            row.valg,
+                            row.undervalg,
+                            row.type,
+                            row.resultat,
+                            row.antall,
+                        )
+                    }
+
+                    call.respondText("OK")
+                }
             }
         }.build().apply {
             if (Configuration.application["APP_PROFILE"] != "prod") LoggRiver(this)

@@ -115,11 +115,27 @@ class Infotrygd {
                 "maksVedtaksdato" to maksVedtaksdato,
             ),
         )
+        return hentBrevstatistikkInner("/hent-brevstatistikk", reqBody)
+    }
+
+    fun hentBrevstatistikk2(enhet: String, minVedtaksdato: LocalDate, maksVedtaksdato: LocalDate, digitaleOppgaveIder: Set<String>): List<Brevstatistikk2> {
+        val reqBody: String = mapper.writeValueAsString(
+            mapOf(
+                "enhet" to enhet,
+                "minVedtaksdato" to minVedtaksdato,
+                "maksVedtaksdato" to maksVedtaksdato,
+                "digitaleOppgaveIder" to digitaleOppgaveIder,
+            ),
+        )
+        return hentBrevstatistikkInner("/hent-brevstatistikk2", reqBody)
+    }
+
+    private inline fun <reified T> hentBrevstatistikkInner(endpoint: String, body: String): T {
         val token = azClient.getToken(Configuration.azureAD["AZURE_AD_SCOPE"]!!)
-        val url = Configuration.infotrygdProxy["INFOTRYGDPROXY_URL"]!! + "/hent-brevstatistikk"
+        val url = Configuration.infotrygdProxy["INFOTRYGDPROXY_URL"]!! + endpoint
 
         if (Configuration.application["APP_PROFILE"] != "prod") {
-            logg.debug { "Making proxy request with url: $url and json: $reqBody. Token: [MASKED]" }
+            logg.debug { "Making proxy request with url: $url and json: $body. Token: [MASKED]" }
         }
 
         // Execute request towards graphql API server
@@ -130,7 +146,7 @@ class Infotrygd {
             .header("Accept", "application/json")
             .header("X-Correlation-ID", UUID.randomUUID().toString())
             .header("Authorization", "Bearer ${token.accessToken}")
-            .POST(HttpRequest.BodyPublishers.ofString(reqBody))
+            .POST(HttpRequest.BodyPublishers.ofString(body))
             .build()
         val httpResponse = client.send(request, HttpResponse.BodyHandlers.ofString())
 
@@ -139,7 +155,7 @@ class Infotrygd {
             val statusCode = httpResponse.statusCode()
             throw Exception(
                 """
-                    invalid response status code when requesting brevstatistikk infotrygd data: enhet=$enhet, minVedtaksdato=$minVedtaksdato, maksVedtaksdato=$maksVedtaksdato, statusCode=$statusCode 
+                    invalid response status code when requesting brevstatistikk infotrygd data: statusCode=$statusCode 
                     responseBody: ${httpResponse.body()}
                 """.trimIndent(),
             )
@@ -197,6 +213,18 @@ class Infotrygd {
         val år: String,
         val måned: String,
         val dag: String,
+        val brevkode: String,
+        val valg: String,
+        val undervalg: String,
+        val type: String,
+        val resultat: String,
+        val antall: Int,
+    )
+
+    data class Brevstatistikk2(
+        val enhet: String,
+        val dato: LocalDate,
+        val digital: Boolean,
         val brevkode: String,
         val valg: String,
         val undervalg: String,
