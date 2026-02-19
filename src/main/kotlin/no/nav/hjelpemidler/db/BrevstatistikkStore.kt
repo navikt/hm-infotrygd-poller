@@ -9,7 +9,7 @@ import javax.sql.DataSource
 
 private val logg = KotlinLogging.logger {}
 
-internal class BrevstatistikkStore(private val ds: DataSource) {
+class BrevstatistikkStore(private val ds: DataSource) {
     fun slettPeriode(enhet: String, minVedtaksdato: LocalDate, maksVedtaksdato: LocalDate) =
         using(sessionOf(ds)) { session ->
             session.run(
