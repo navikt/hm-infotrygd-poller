@@ -70,7 +70,7 @@ fun Route.internal(brevstatistikkStore: BrevstatistikkStore) {
             val req = call.receive<Request>()
 
             // Oppdater brevstatistikk
-            logg.info { "Oppdaterer brevstatistikk2 (manuelt): enhet=${req.enhet}, minVedtaksdato=${req.minVedtaksdato}, maksVedtaksdato=${req.maksVedtaksdato}" }
+            logg.info { "Oppdaterer brevstatistikk2 (manuelt): enhet=${req.enhet}, minVedtaksdato=${req.minVedtaksdato}, maksVedtaksdato=${req.maksVedtaksdato}, len(digitaleOppgaveIder)=${req.digitaleOppgaveIder.size}" }
             val brevstatistikk = Infotrygd().hentBrevstatistikk2(
                 req.enhet,
                 req.minVedtaksdato,
