@@ -86,7 +86,7 @@ fun Route.internal(brevstatistikkStore: BrevstatistikkStore) {
                     eldste
                 }
             }
-            logg.info { "Fant ${brevstatistikk.count()} rader med brevstatistikk (eldste=$eldste)" }
+            logg.info { "Fant ${brevstatistikk.count()} rader med brevstatistikk (eldste=$eldste, digitale=${brevstatistikk.count { it.digital }}, papir=${brevstatistikk.count { !it.digital }})" }
 
             brevstatistikkStore.slettPeriode2(req.enhet, req.minVedtaksdato, req.maksVedtaksdato)
             brevstatistikk.forEach { row ->
