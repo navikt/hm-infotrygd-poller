@@ -118,18 +118,6 @@ class Infotrygd {
         return hentBrevstatistikkInner("/hent-brevstatistikk", reqBody)
     }
 
-    fun hentBrevstatistikk2(enhet: String, minVedtaksdato: LocalDate, maksVedtaksdato: LocalDate, digitaleOppgaveIder: Set<String>): List<Brevstatistikk2> {
-        val reqBody: String = mapper.writeValueAsString(
-            mapOf(
-                "enhet" to enhet,
-                "minVedtaksdato" to minVedtaksdato,
-                "maksVedtaksdato" to maksVedtaksdato,
-                "digitaleOppgaveIder" to digitaleOppgaveIder,
-            ),
-        )
-        return hentBrevstatistikkInner("/hent-brevstatistikk2", reqBody)
-    }
-
     private inline fun <reified T> hentBrevstatistikkInner(endpoint: String, body: String): T {
         val token = azClient.getToken(Configuration.azureAD["AZURE_AD_SCOPE"]!!)
         val url = Configuration.infotrygdProxy["INFOTRYGDPROXY_URL"]!! + endpoint
