@@ -32,8 +32,8 @@ private val mapper: JsonMapper = jacksonMapperBuilder()
 
 class SoknadsbehandlingDb {
     fun hentInfotrygdPker(fraOgMedDato: LocalDate, tilOgMedDato: LocalDate): List<InfotrygdPrimaryKey> {
-        val token = azClient.getToken(Configuration.azureAD["AZURE_AD_SCOPE_SOKNADSBEHANDLING_DB"]!!)
-        val url = Configuration.infotrygdProxy["SOKNADSBEHANDLING_DB_URL"]!! + "/api/infotrygd/digitale-vedtak-nokler"
+        val token = azClient.getToken(Configuration.soknadsbehandlingDb["AZURE_AD_SCOPE_SOKNADSBEHANDLING_DB"]!!)
+        val url = Configuration.soknadsbehandlingDb["SOKNADSBEHANDLING_DB_URL"]!! + "/api/infotrygd/digitale-vedtak-nokler"
 
         val body = mapper.writeValueAsString(
             mapOf(
