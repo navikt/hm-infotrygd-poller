@@ -3,6 +3,7 @@ CREATE VIEW v1_brevstatistikk_view AS
 SELECT
     bs.enhet,
     bs.dato,
+    bs.digital,
     COALESCE(INITCAP(bk.beskrivelse), bs.brevkode) AS brevkode,
     COALESCE(INITCAP(bv.beskrivelse), bs.valg) AS valg,
     COALESCE(INITCAP(buv.beskrivelse), bs.undervalg) AS undervalg,
