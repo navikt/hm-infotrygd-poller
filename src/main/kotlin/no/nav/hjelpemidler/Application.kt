@@ -21,6 +21,7 @@ import no.nav.hjelpemidler.metrics.Metrics
 import no.nav.hjelpemidler.rivers.InfotrygdAddToPollVedtakListRiver
 import no.nav.hjelpemidler.rivers.LoggRiver
 import no.nav.hjelpemidler.service.infotrygdproxy.Infotrygd
+import no.nav.hjelpemidler.service.soknadsbehandlingdb.SoknadsbehandlingDb
 import java.time.Duration
 import java.time.LocalDate
 import java.time.LocalDateTime
@@ -283,27 +284,34 @@ fun main() {
             // Oppdater brevstatistikk fra de siste syv dagene (i tilfelle noe endrer seg underveis)
             logg.info { "Oppdaterer brevstatistikk" }
             runCatching {
-                val enhet = "4703"
+                val enheter = setOf("4702", "4703", "4707")
                 val minVedtaksdato = LocalDate.now().minusDays(8)
                 val maksVedtaksdato = LocalDate.now().minusDays(1)
 
-                val brevstatistikk = Infotrygd().hentBrevstatistikk(enhet, minVedtaksdato, maksVedtaksdato)
+                logg.info { "brevstatistikk (1/3): Henter infotrygd pker for digitale vedtak fra soknadsbehandling-db" }
+                val pker = SoknadsbehandlingDb().hentInfotrygdPker(
+                    minVedtaksdato.minusDays(5),
+                    maksVedtaksdato.plusDays(5),
+                )
+
+                logg.info { "brevstatistikk (2/3): Henter brevstatistikk (manuelt): enhet=$enheter, minVedtaksdato=$minVedtaksdato, maksVedtaksdato=$maksVedtaksdato, antallPkerForDigitaleVedtak=${pker.count()}" }
+                val brevstatistikk = Infotrygd().hentBrevstatistikk(enheter, minVedtaksdato, maksVedtaksdato, pker)
                 val eldste = brevstatistikk.fold(LocalDate.EPOCH) { eldste, row ->
-                    val radDato = LocalDate.parse("${row.år}-${row.måned}-${row.dag}")
-                    if (eldste == LocalDate.EPOCH) return@fold radDato
-                    if (radDato.isBefore(eldste)) {
-                        radDato
+                    if (eldste == LocalDate.EPOCH) return@fold row.dato
+                    if (row.dato.isBefore(eldste)) {
+                        row.dato
                     } else {
                         eldste
                     }
                 }
-                logg.info { "Fant ${brevstatistikk.count()} rader med brevstatistikk (eldste=$eldste)" }
+                logg.info { "brevstatistikk (3/3): Fant ${brevstatistikk.count()} rader med brevstatistikk (eldste=$eldste)" }
 
-                brevstatistikkStore.slettPeriode(enhet, minVedtaksdato, maksVedtaksdato)
+                brevstatistikkStore.slettPeriode(enheter, minVedtaksdato, maksVedtaksdato)
                 brevstatistikk.forEach { row ->
                     brevstatistikkStore.lagre(
                         row.enhet,
-                        LocalDate.parse("${row.år}-${row.måned}-${row.dag}"),
+                        row.dato,
+                        row.digital,
                         row.brevkode,
                         row.valg,
                         row.undervalg,

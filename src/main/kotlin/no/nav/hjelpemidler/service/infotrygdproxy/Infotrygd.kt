@@ -108,18 +108,7 @@ class Infotrygd {
         return results!!.toList()
     }
 
-    fun hentBrevstatistikk(enhet: String, minVedtaksdato: LocalDate, maksVedtaksdato: LocalDate): List<Brevstatistikk> {
-        val reqBody: String = mapper.writeValueAsString(
-            mapOf(
-                "enhet" to enhet,
-                "minVedtaksdato" to minVedtaksdato,
-                "maksVedtaksdato" to maksVedtaksdato,
-            ),
-        )
-        return hentBrevstatistikkInner("/hent-brevstatistikk", reqBody)
-    }
-
-    fun hentBrevstatistikk2(enheter: Set<String>, minVedtaksdato: LocalDate, maksVedtaksdato: LocalDate, pker: List<SoknadsbehandlingDb.InfotrygdPrimaryKey>): List<Brevstatistikk2> {
+    fun hentBrevstatistikk(enheter: Set<String>, minVedtaksdato: LocalDate, maksVedtaksdato: LocalDate, pker: List<SoknadsbehandlingDb.InfotrygdPrimaryKey>): List<Brevstatistikk> {
         val reqBody: String = mapper.writeValueAsString(
             mapOf(
                 "enheter" to enheter,
@@ -210,19 +199,6 @@ class Infotrygd {
     )
 
     data class Brevstatistikk(
-        val enhet: String,
-        val år: String,
-        val måned: String,
-        val dag: String,
-        val brevkode: String,
-        val valg: String,
-        val undervalg: String,
-        val type: String,
-        val resultat: String,
-        val antall: Int,
-    )
-
-    data class Brevstatistikk2(
         val enhet: String,
         val dato: LocalDate,
         val digital: Boolean,
