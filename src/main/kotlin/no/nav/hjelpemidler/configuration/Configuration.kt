@@ -24,6 +24,9 @@ object Configuration {
             "AZURE_AD_SCOPE" to "api://prod-fss.teamdigihot.hm-infotrygd-proxy/.default",
 
             "INFOTRYGDPROXY_URL" to "https://hm-infotrygd-proxy.prod-fss-pub.nais.io",
+
+            "AZURE_AD_SCOPE_SOKNADSBEHANDLING_DB" to "api://prod-gcp.teamdigihot.hm-soknadsbehandling-db/.default",
+            "SOKNADSBEHANDLING_DB_URL" to "http://hm-soknadsbehandling-db/",
         ),
     )
 
@@ -35,6 +38,9 @@ object Configuration {
             "AZURE_AD_SCOPE" to "api://dev-fss.teamdigihot.hm-infotrygd-proxy/.default",
 
             "INFOTRYGDPROXY_URL" to "https://hm-infotrygd-proxy.dev-fss-pub.nais.io",
+
+            "AZURE_AD_SCOPE_SOKNADSBEHANDLING_DB" to "api://dev-gcp.teamdigihot.hm-soknadsbehandling-db/.default",
+            "SOKNADSBEHANDLING_DB_URL" to "http://hm-soknadsbehandling-db/",
         ),
     )
 
@@ -49,6 +55,9 @@ object Configuration {
             "AZURE_AD_SCOPE" to "local",
 
             "INFOTRYGDPROXY_URL" to "http://infotrygd/proxy",
+
+            "AZURE_AD_SCOPE_SOKNADSBEHANDLING_DB" to "local",
+            "SOKNADSBEHANDLING_DB_URL" to "http://hm-soknadsbehandling-db/",
 
             "DB_HOST" to "localhost",
             "DB_PORT" to "5432",
@@ -68,6 +77,11 @@ object Configuration {
 
     val infotrygdProxy: Map<String, String> = mapOf(
         "INFOTRYGDPROXY_URL" to configuration[Key("INFOTRYGDPROXY_URL", stringType)],
+    )
+
+    val soknadsbehandlingDb: Map<String, String> = mapOf(
+        "AZURE_AD_SCOPE_SOKNADSBEHANDLING_DB" to configuration[Key("AZURE_AD_SCOPE_SOKNADSBEHANDLING_DB", stringType)],
+        "SOKNADSBEHANDLING_DB_URL" to configuration[Key("SOKNADSBEHANDLING_DB_URL", stringType)],
     )
 
     val db: Map<String, String> = mapOf(

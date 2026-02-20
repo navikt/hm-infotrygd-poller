@@ -12,6 +12,7 @@ import com.fasterxml.jackson.module.kotlin.readValue
 import io.github.oshai.kotlinlogging.KotlinLogging
 import no.nav.hjelpemidler.configuration.Configuration
 import no.nav.hjelpemidler.service.azure.AzureClient
+import no.nav.hjelpemidler.service.soknadsbehandlingdb.SoknadsbehandlingDb
 import java.net.URI
 import java.net.http.HttpClient
 import java.net.http.HttpRequest
@@ -116,6 +117,18 @@ class Infotrygd {
             ),
         )
         return hentBrevstatistikkInner("/hent-brevstatistikk", reqBody)
+    }
+
+    fun hentBrevstatistikk2(enheter: Set<String>, minVedtaksdato: LocalDate, maksVedtaksdato: LocalDate, pker: List<SoknadsbehandlingDb.InfotrygdPrimaryKey>): List<Brevstatistikk2> {
+        val reqBody: String = mapper.writeValueAsString(
+            mapOf(
+                "enheter" to enheter,
+                "minVedtaksdato" to minVedtaksdato,
+                "maksVedtaksdato" to maksVedtaksdato,
+                "pker" to pker,
+            ),
+        )
+        return hentBrevstatistikkInner("/hent-brevstatistikk2", reqBody)
     }
 
     private inline fun <reified T> hentBrevstatistikkInner(endpoint: String, body: String): T {

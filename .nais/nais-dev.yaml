@@ -33,6 +33,7 @@ spec:
       external:
         - host: hm-infotrygd-proxy.dev-fss-pub.nais.io
       rules:
+        - application: hm-soknadsbehandling-db
         - application: logging
           namespace: nais-system
   gcp:
