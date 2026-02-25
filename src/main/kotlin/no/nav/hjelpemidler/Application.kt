@@ -14,6 +14,7 @@ import no.nav.helse.rapids_rivers.RapidApplication.RapidApplicationConfig
 import no.nav.hjelpemidler.configuration.Configuration
 import no.nav.hjelpemidler.db.BrevstatistikkStore
 import no.nav.hjelpemidler.db.PollListStorePostgres
+import no.nav.hjelpemidler.db.VedtaksstatistikkStore
 import no.nav.hjelpemidler.db.dataSource
 import no.nav.hjelpemidler.db.migrate
 import no.nav.hjelpemidler.db.waitForDB
@@ -48,13 +49,14 @@ fun main() {
     val datasource = dataSource()
     val store = PollListStorePostgres(datasource)
     val brevstatistikkStore = BrevstatistikkStore(datasource)
+    val vedtaksstatistikkStore = VedtaksstatistikkStore(datasource)
 
     // Define our rapid and rivers app
     val rapidApp = RapidApplication.Builder(RapidApplicationConfig.fromEnv(System.getenv()))
         .withKtorModule {
             install(ContentNegotiation) { jackson { registerModule(JavaTimeModule()) } }
             routing {
-                internal(brevstatistikkStore)
+                internal(brevstatistikkStore, vedtaksstatistikkStore)
             }
         }.build().apply {
             if (Configuration.application["APP_PROFILE"] != "prod") LoggRiver(this)

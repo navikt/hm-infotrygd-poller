@@ -19,7 +19,6 @@ class BrevstatistikkStore(private val ds: DataSource) {
                             DELETE FROM public.v1_brevstatistikk
                             WHERE enhet = :enhet AND dato >= :minVedtaksdato AND dato <= :maksVedtaksdato
                         """.trimIndent().split("\n").joinToString(" "),
-                        enhet,
                         mapOf(
                             "enhet" to enhet,
                             "minVedtaksdato" to minVedtaksdato,

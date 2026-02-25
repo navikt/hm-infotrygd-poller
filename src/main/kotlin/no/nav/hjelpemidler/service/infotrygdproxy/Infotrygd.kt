@@ -117,10 +117,20 @@ class Infotrygd {
                 "pker" to pker,
             ),
         )
-        return hentBrevstatistikkInner("/hent-brevstatistikk2", reqBody)
+        return hentInfotrygdData("/hent-brevstatistikk2", reqBody)
     }
 
-    private inline fun <reified T> hentBrevstatistikkInner(endpoint: String, body: String): T {
+    fun hentVedtaksstatistikk(minVedtaksdato: LocalDate, maksVedtaksdato: LocalDate): List<Vedtaksstatistikk> {
+        val reqBody: String = mapper.writeValueAsString(
+            mapOf(
+                "minVedtaksdato" to minVedtaksdato,
+                "maksVedtaksdato" to maksVedtaksdato,
+            ),
+        )
+        return hentInfotrygdData("/hent-vedtaksstatistikk", reqBody)
+    }
+
+    private inline fun <reified T> hentInfotrygdData(endpoint: String, body: String): T {
         val token = azClient.getToken(Configuration.azureAD["AZURE_AD_SCOPE"]!!)
         val url = Configuration.infotrygdProxy["INFOTRYGDPROXY_URL"]!! + endpoint
 
@@ -145,7 +155,7 @@ class Infotrygd {
             val statusCode = httpResponse.statusCode()
             throw Exception(
                 """
-                    invalid response status code when requesting brevstatistikk infotrygd data: statusCode=$statusCode 
+                    invalid response status code when requesting infotrygd data: statusCode=$statusCode 
                     responseBody: ${httpResponse.body()}
                 """.trimIndent(),
             )
@@ -203,6 +213,16 @@ class Infotrygd {
         val dato: LocalDate,
         val digital: Boolean,
         val brevkode: String,
+        val valg: String,
+        val undervalg: String,
+        val type: String,
+        val resultat: String,
+        val antall: Int,
+    )
+
+    data class Vedtaksstatistikk(
+        val enhet: String,
+        val dato: LocalDate,
         val valg: String,
         val undervalg: String,
         val type: String,
