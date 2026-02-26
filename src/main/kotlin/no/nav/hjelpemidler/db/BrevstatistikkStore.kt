@@ -47,8 +47,6 @@ class BrevstatistikkStore(private val ds: DataSource) {
                         INSERT INTO public.v1_brevstatistikk (
                             enhet, dato, digital, brevkode, valg, undervalg, type, resultat, antall
                         ) VALUES (:enhet, :dato, :digital, :brevkode, :valg, :undervalg, :type, :resultat, :antall)
-                        ON CONFLICT (enhet, dato, digital, brevkode, valg, undervalg, type, resultat)
-                        DO UPDATE SET antall = :antall, oppdatert = NOW()
                     """.trimIndent().split("\n").joinToString(" "),
                     mapOf(
                         "enhet" to enhet,

@@ -34,8 +34,6 @@ class VedtaksstatistikkStore(private val ds: DataSource) {
                     INSERT INTO public.v1_vedtaksstatistikk (
                         enhet, dato, valg, undervalg, type, resultat, antall
                     ) VALUES (:enhet, :dato, :valg, :undervalg, :type, :resultat, :antall)
-                    ON CONFLICT (enhet, dato, valg, undervalg, type, resultat)
-                    DO UPDATE SET antall = :antall, oppdatert = NOW()
                 """.trimIndent(),
                 vedtaksstatistikk.map {
                     mapOf(
