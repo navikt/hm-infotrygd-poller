@@ -1,19 +1,19 @@
 DROP VIEW IF EXISTS v1_vedtaksstatistikk_view;
 CREATE VIEW v1_vedtaksstatistikk_view AS
 SELECT
-    bs.enhet,
-    bs.dato,
-    COALESCE(INITCAP(bv.beskrivelse), bs.valg) AS valg,
-    COALESCE(INITCAP(buv.beskrivelse), bs.undervalg) AS undervalg,
-    COALESCE(INITCAP(bt.beskrivelse), bs.type) AS type,
-    COALESCE(INITCAP(br.beskrivelse), bs.resultat) AS resultat,
-    bs.antall,
-    bs.oppdatert
-FROM v1_vedtaksstatistikk bs
-LEFT JOIN v1_brevstatistikk_type bt ON bt.type = TRIM(bs.type)
-LEFT JOIN v1_brevstatistikk_resultat br ON br.resultat = TRIM(bs.resultat)
-LEFT JOIN v1_brevstatistikk_valg bv ON bv.valg = TRIM(bs.valg)
-LEFT JOIN v1_brevstatistikk_undervalg buv ON buv.valg = TRIM(bs.valg) AND buv.undervalg = TRIM(bs.undervalg)
+    vs.enhet,
+    vs.dato,
+    COALESCE(INITCAP(bv.beskrivelse), vs.valg) AS valg,
+    COALESCE(INITCAP(buv.beskrivelse), vs.undervalg) AS undervalg,
+    COALESCE(INITCAP(bt.beskrivelse), vs.type) AS type,
+    COALESCE(INITCAP(br.beskrivelse), vs.resultat) AS resultat,
+    vs.antall,
+    vs.oppdatert
+FROM v1_vedtaksstatistikk vs
+LEFT JOIN v1_brevstatistikk_type bt ON bt.type = TRIM(vs.type)
+LEFT JOIN v1_brevstatistikk_resultat br ON br.resultat = TRIM(vs.resultat)
+LEFT JOIN v1_brevstatistikk_valg bv ON bv.valg = TRIM(vs.valg)
+LEFT JOIN v1_brevstatistikk_undervalg buv ON buv.valg = TRIM(vs.valg) AND buv.undervalg = TRIM(vs.undervalg)
 ;
 
 GRANT ALL PRIVILEGES ON ALL TABLES IN SCHEMA public TO cloudsqliamuser;
