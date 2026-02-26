@@ -269,7 +269,7 @@ fun main() {
 
     // Run background daemon for polling Infotrygd
     thread(isDaemon = true) {
-        logg.info { "Brevstatistikk daemon starting" }
+        logg.info { "Brevstatistikk/vedtaksstatistikk daemon starting" }
 
         val nesteSkanning = {
             LocalDateTime.now().let {
@@ -296,7 +296,7 @@ fun main() {
                     maksVedtaksdato.plusDays(5),
                 )
 
-                logg.info { "brevstatistikk (2/3): Henter brevstatistikk (manuelt): enhet=$enheter, minVedtaksdato=$minVedtaksdato, maksVedtaksdato=$maksVedtaksdato, antallPkerForDigitaleVedtak=${pker.count()}" }
+                logg.info { "brevstatistikk (2/3): Henter brevstatistikk: enhet=$enheter, minVedtaksdato=$minVedtaksdato, maksVedtaksdato=$maksVedtaksdato, antallPkerForDigitaleVedtak=${pker.count()}" }
                 val brevstatistikk = Infotrygd().hentBrevstatistikk(enheter, minVedtaksdato, maksVedtaksdato, pker)
                 val eldste = brevstatistikk.fold(LocalDate.EPOCH) { eldste, row ->
                     if (eldste == LocalDate.EPOCH) return@fold row.dato
@@ -324,6 +324,29 @@ fun main() {
                 }
             }.getOrElse { e ->
                 logg.error(e) { "Feil ved oppdatering av brevstatistikk, prøver igjen i morgen!" }
+            }
+
+            // Oppdater vedtaksstatistikk fra de siste dagene
+            logg.info { "Oppdaterer vedtaksstatistikk" }
+            runCatching {
+                val minVedtaksdato = LocalDate.now().minusDays(2)
+                val maksVedtaksdato = LocalDate.now().minusDays(1)
+
+                logg.info { "vedtaksstatistikk (1/2): Henter vedtaksstatistikk: minVedtaksdato=$minVedtaksdato, maksVedtaksdato=$maksVedtaksdato" }
+                val vedtaksstatistikk = Infotrygd().hentVedtaksstatistikk(minVedtaksdato, maksVedtaksdato)
+                val eldste = vedtaksstatistikk.fold(LocalDate.EPOCH) { eldste, row ->
+                    if (eldste == LocalDate.EPOCH) return@fold row.dato
+                    if (row.dato.isBefore(eldste)) {
+                        row.dato
+                    } else {
+                        eldste
+                    }
+                }
+                logg.info { "vedtaksstatistikk (2/2): Fant ${vedtaksstatistikk.count()} rader med vedtaksstatistikk (eldste=$eldste, enheterMedStatistikk=${vedtaksstatistikk.distinctBy { it.enhet }.map { it.enhet }})" }
+                vedtaksstatistikkStore.slettPeriode(minVedtaksdato, maksVedtaksdato)
+                vedtaksstatistikkStore.lagre(vedtaksstatistikk)
+            }.getOrElse { e ->
+                logg.error(e) { "Feil ved oppdatering av vedtaksstatistikk, prøver igjen i morgen!" }
             }
         }
     }
