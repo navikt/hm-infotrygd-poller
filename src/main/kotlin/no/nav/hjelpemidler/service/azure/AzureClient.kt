@@ -17,13 +17,12 @@ class AzureClient(private val tenantUrl: String, private val clientId: String, p
 
     private val tokenCache: MutableMap<String, Token> = mutableMapOf()
 
-    fun getToken(scope: String) =
-        tokenCache[scope]
-            ?.takeUnless(Token::isExpired)
-            ?: fetchToken(scope)
-                .also { token ->
-                    tokenCache[scope] = token
-                }
+    fun getToken(scope: String) = tokenCache[scope]
+        ?.takeUnless(Token::isExpired)
+        ?: fetchToken(scope)
+            .also { token ->
+                tokenCache[scope] = token
+            }
 
     private fun fetchToken(scope: String): Token {
         val (responseCode, responseBody) = with(URL("$tenantUrl/oauth2/v2.0/token").openConnection() as HttpURLConnection) {

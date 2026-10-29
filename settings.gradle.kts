@@ -16,7 +16,6 @@ dependencyResolutionManagement {
     versionCatalogs {
         create("libs") {
             from("no.nav.hjelpemidler:katalog:26.058.145948")
-            version("spotless", "6.25.0")
         }
     }
 }

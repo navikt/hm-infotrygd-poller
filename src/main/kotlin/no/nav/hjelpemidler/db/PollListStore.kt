@@ -33,12 +33,11 @@ data class Poll(
 
 internal class PollListStorePostgres(private val ds: DataSource) : PollListStore {
 
-    override fun add(søknadId: UUID, fnrBruker: String, trygdekontorNr: String, saksblokk: String, saksnr: String): Int =
-        time("add") {
-            using(sessionOf(ds)) { session ->
-                session.run(
-                    queryOf(
-                        """
+    override fun add(søknadId: UUID, fnrBruker: String, trygdekontorNr: String, saksblokk: String, saksnr: String): Int = time("add") {
+        using(sessionOf(ds)) { session ->
+            session.run(
+                queryOf(
+                    """
                             INSERT INTO public.V1_POLL_LIST (
                                 SOKNADS_ID,
                                 FNR_BRUKER,
@@ -46,16 +45,16 @@ internal class PollListStorePostgres(private val ds: DataSource) : PollListStore
                                 SAKSBLOKK,
                                 SAKSNR
                             ) VALUES (?, ?, ?, ?, ?) ON CONFLICT DO NOTHING
-                        """.trimIndent().split("\n").joinToString(" "),
-                        søknadId,
-                        fnrBruker,
-                        trygdekontorNr,
-                        saksblokk,
-                        saksnr,
-                    ).asUpdate,
-                )
-            }
+                    """.trimIndent().split("\n").joinToString(" "),
+                    søknadId,
+                    fnrBruker,
+                    trygdekontorNr,
+                    saksblokk,
+                    saksnr,
+                ).asUpdate,
+            )
         }
+    }
 
     override fun remove(søknadId: UUID) {
         @Language("PostgreSQL")
@@ -192,8 +191,7 @@ internal class PollListStorePostgres(private val ds: DataSource) : PollListStore
         }
     }
 
-    private inline fun <T : Any?> time(queryName: String, function: () -> T) =
-        function()
+    private inline fun <T : Any?> time(queryName: String, function: () -> T) = function()
     /*
     Prometheus.dbTimer.labels(queryName).startTimer().let { timer ->
         function().also {
