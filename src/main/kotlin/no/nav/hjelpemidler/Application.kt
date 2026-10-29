@@ -199,7 +199,7 @@ fun main() {
                         continue
                     }
 
-                    // Decision made, lets send it out on the rapid and then delete it from the polling list
+                    // Decision made, lets send it out on the rapid and then delete it from the polling list.
                     decisionsMade++
                     try {
                         rapidApp.publish(
