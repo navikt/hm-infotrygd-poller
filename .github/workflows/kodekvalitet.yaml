@@ -14,3 +14,4 @@ jobs:
     uses: navikt/hm-workflows/.github/workflows/kodekvalitet.yaml@main
     with:
       java-version: "25"
+      codeql: true
