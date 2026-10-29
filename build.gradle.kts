@@ -43,8 +43,11 @@ spotless {
     }
 }
 
-kotlin { jvmToolchain(21) }
+kotlin { jvmToolchain(25) }
 tasks.test { useJUnitPlatform() }
-tasks.shadowJar { mergeServiceFiles() }
+tasks.shadowJar {
+    mergeServiceFiles()
+    duplicatesStrategy = DuplicatesStrategy.INCLUDE
+}
 
 application { mainClass.set("no.nav.hjelpemidler.ApplicationKt") }

@@ -10,7 +10,6 @@ import io.ktor.server.application.install
 import io.ktor.server.plugins.contentnegotiation.ContentNegotiation
 import io.ktor.server.routing.routing
 import no.nav.helse.rapids_rivers.RapidApplication
-import no.nav.helse.rapids_rivers.RapidApplication.RapidApplicationConfig
 import no.nav.hjelpemidler.configuration.Configuration
 import no.nav.hjelpemidler.db.BrevstatistikkStore
 import no.nav.hjelpemidler.db.PollListStorePostgres
@@ -52,16 +51,20 @@ fun main() {
     val vedtaksstatistikkStore = VedtaksstatistikkStore(datasource)
 
     // Define our rapid and rivers app
-    val rapidApp = RapidApplication.Builder(RapidApplicationConfig.fromEnv(System.getenv()))
-        .withKtorModule {
-            install(ContentNegotiation) { jackson { registerModule(JavaTimeModule()) } }
-            routing {
-                internal(brevstatistikkStore, vedtaksstatistikkStore)
+    val rapidApp = RapidApplication.create(
+        System.getenv(),
+        builder = {
+            withKtorModule {
+                install(ContentNegotiation) { jackson { registerModule(JavaTimeModule()) } }
+                routing {
+                    internal(brevstatistikkStore, vedtaksstatistikkStore)
+                }
             }
-        }.build().apply {
-            if (Configuration.application["APP_PROFILE"] != "prod") LoggRiver(this)
-            InfotrygdAddToPollVedtakListRiver(this, store)
-        }
+        },
+    ).apply {
+        if (Configuration.application["APP_PROFILE"] != "prod") LoggRiver(this)
+        InfotrygdAddToPollVedtakListRiver(this, store)
+    }
 
     val metrics = Metrics(rapidApp)
 

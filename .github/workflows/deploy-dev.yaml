@@ -21,4 +21,5 @@ jobs:
     uses: navikt/hm-workflows/.github/workflows/deploy-dev.yaml@main
     with:
       manifest: .nais/nais-dev.yaml
+      java-version: "25"
     secrets: inherit
